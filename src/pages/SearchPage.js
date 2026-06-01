@@ -21,9 +21,15 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
 
   useEffect(() => {
     if (selectedBike?.query) {
-      setQuery(selectedBike.query);
-      handleSearch(selectedBike.query);
+      const q = selectedBike.query;
+      setQuery(q);
+      searchBikeInfo(q).then(bike => {
+        if (bike) setResults([bike]);
+        setLoading(false);
+        setSearched(true);
+      });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = async (q) => {

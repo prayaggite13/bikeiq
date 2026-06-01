@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ExternalLink, Zap } from 'lucide-react';
-import { fetchBikeNews, fetchLatestLaunches, fetchEVNews, timeAgo } from '../utils/news';
+import { RefreshCw, ExternalLink } from 'lucide-react';
+import { fetchBikeNews, timeAgo } from '../utils/news';
 
 const FILTERS = [
   { label: 'All News', query: 'two wheeler motorcycle scooter India' },
@@ -26,7 +26,14 @@ export default function NewsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(0); }, []);
+  useEffect(() => { 
+    fetchBikeNews(FILTERS[0].query, 12).then(data => {
+      setArticles(data);
+      setLastUpdated(new Date());
+      setLoading(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFilter = (idx) => {
     setActiveFilter(idx);

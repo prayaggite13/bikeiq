@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, GitCompare, ArrowLeft, Zap, Star, AlertTriangle, CheckCircle, TrendingDown, Share2, Bell } from 'lucide-react';
-import { formatINR, calculateOwnershipCost, calculateSubsidy } from '../utils/calculator';
+import { Heart, GitCompare, ArrowLeft, Zap, AlertTriangle, CheckCircle, Share2, Bell } from 'lucide-react';
+import { calculateSubsidy, formatINR } from '../utils/calculator';
 import { savePriceAlert } from '../utils/supabase';
 import { askGemini } from '../utils/gemini';
 
@@ -18,7 +18,6 @@ export default function BikeDetailPage({ selectedBike: bike, navigate, toggleWat
 
   const saved = isWatchlisted(bike);
   const subsidy = calculateSubsidy(bike);
-  const ownership = calculateOwnershipCost({ bike, dailyKm });
 
   const fetchAIReview = async () => {
     setAiLoading(true);

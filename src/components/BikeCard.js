@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, GitCompare, Star, Zap, Fuel } from 'lucide-react';
+import { Heart, GitCompare, Zap, Fuel } from 'lucide-react';
 import { formatINR } from '../utils/calculator';
 
 export default function BikeCard({ bike, navigate, toggleWatchlist, isWatchlisted, addToCompare, compact = false }) {

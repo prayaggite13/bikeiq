@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Trash2 } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import BikeCard from '../components/BikeCard';
 
 export default function WatchlistPage({ watchlist, toggleWatchlist, isWatchlisted, addToCompare, navigate }) {

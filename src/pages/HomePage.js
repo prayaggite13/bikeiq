@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Zap, TrendingUp, Navigation, Calculator, ArrowRight, ChevronRight } from 'lucide-react';
+import { Search, Zap, TrendingUp, Navigation, Calculator, ChevronRight } from 'lucide-react';
 
 const POPULAR_SEARCHES = [
   'Royal Enfield Classic 350', 'Honda Activa 6G', 'Ola S1 Pro',

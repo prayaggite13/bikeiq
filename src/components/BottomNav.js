@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, GitCompare, Heart, Newspaper, Bot, Navigation, Calculator } from 'lucide-react';
+import { Home, Search, GitCompare, Heart, Newspaper, Bot } from 'lucide-react';
 
 const navItems = [
   { id: 'home', icon: Home, label: 'Home' },
