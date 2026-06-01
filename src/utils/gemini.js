@@ -1,35 +1,49 @@
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-export async function askGemini(prompt, systemContext = '') {
-  const fullPrompt = systemContext ? `${systemContext}\n\n${prompt}` : prompt;
+async function callGroq(prompt, systemPrompt = '', temperature = 0.7, maxTokens = 1024) {
   try {
-    const res = await fetch(GEMINI_URL, {
+    const messages = [];
+    if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+    messages.push({ role: 'user', content: prompt });
+
+    const res = await fetch(GROQ_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        model: 'llama-3.1-8b-instant',
+        messages,
+        temperature,
+        max_tokens: maxTokens
       })
     });
     const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not get a response.';
+    return data?.choices?.[0]?.message?.content || '';
   } catch (err) {
-    return 'Error connecting to AI. Please try again.';
+    console.error('Groq error:', err);
+    return '';
   }
 }
 
-export async function searchBikeInfo(bikeName) {
-  const prompt = `You are BikeIQ, India's smartest 2-wheeler expert. Provide detailed information about the "${bikeName}" available in India.
+export async function askGemini(prompt, systemContext = '') {
+  const reply = await callGroq(prompt, systemContext);
+  return reply || 'Sorry, I could not get a response. Please try again.';
+}
 
-Return ONLY a valid JSON object with this exact structure:
+export async function searchBikeInfo(bikeName) {
+  const systemPrompt = `You are a bike data API. Always respond with valid JSON only. No markdown, no explanation, no extra text.`;
+  
+  const prompt = `Return detailed information about the "${bikeName}" available in India as a JSON object with this exact structure:
 {
   "name": "Full bike name",
   "brand": "Brand name",
   "type": "Scooter/Commuter/Sport/Cruiser/Adventure/Electric",
-  "fuelType": "Petrol/Electric/Hybrid",
+  "fuelType": "Petrol/Electric",
   "launchYear": 2023,
-  "status": "Available/Upcoming/Discontinued",
+  "status": "Available",
   "tagline": "Short catchy description",
   "basePrice": 150000,
   "topPrice": 180000,
@@ -65,10 +79,9 @@ Return ONLY a valid JSON object with this exact structure:
   "colors": ["Red", "Blue", "Black", "White"],
   "variants": [
     {"name": "STD", "price": 150000, "features": ["Basic instrument cluster"]},
-    {"name": "Deluxe", "price": 165000, "features": ["Digital console", "LED lights"]},
-    {"name": "ABS", "price": 180000, "features": ["ABS", "All Deluxe features"]}
+    {"name": "Deluxe", "price": 165000, "features": ["Digital console", "LED lights"]}
   ],
-  "features": ["LED Headlight", "Digital Console", "USB Charging", "Side Stand Indicator"],
+  "features": ["LED Headlight", "Digital Console", "USB Charging"],
   "safetyFeatures": ["ABS", "Engine Kill Switch", "Hazard Lights"],
   "pros": ["Fuel efficient", "Comfortable for city", "Low maintenance"],
   "cons": ["Average build quality", "Basic suspension"],
@@ -76,13 +89,13 @@ Return ONLY a valid JSON object with this exact structure:
   "serviceInterval": "3000 km or 3 months",
   "avgServiceCost": 1500,
   "insuranceEstimate": 8000,
-  "commonIssues": ["Vibrations at high RPM", "Occasional starting issues in cold weather"],
+  "commonIssues": ["Vibrations at high RPM"],
   "ownerRating": 4.1,
   "expertRating": 3.9,
   "totalReviews": 1240
 }
 
-If this is an Electric vehicle, fill evSpecs like:
+If Electric vehicle, set evSpecs like:
 "evSpecs": {
   "batteryCapacity": "3.04 kWh",
   "range": {"claimed": "146 km", "realWorld": "110-120 km"},
@@ -90,38 +103,30 @@ If this is an Electric vehicle, fill evSpecs like:
   "topSpeed": "90 kmph",
   "chargingCost": 25
 }
-and set fuelCapacity to null and mileage to null.
+and set mileage to null.
 
-Return ONLY the JSON. No markdown, no explanation.`;
+Respond with ONLY the JSON object. No markdown. No explanation.`;
 
   try {
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
-      })
-    });
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = await callGroq(prompt, systemPrompt, 0.3, 2048);
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch (err) {
+    console.error('Parse error:', err);
     return null;
   }
 }
 
 export async function getCommuteRecommendations(dailyKm, roadType, budget, preference) {
-  const prompt = `You are BikeIQ, India's smartest 2-wheeler advisor. A user is looking for the best bike for their needs.
-
-User Profile:
+  const systemPrompt = `You are a bike recommendation API. Always respond with valid JSON array only. No markdown, no explanation.`;
+  
+  const prompt = `Recommend 5 bikes available in India for:
 - Daily commute: ${dailyKm} km
 - Road type: ${roadType}
-- Budget: ₹${budget.toLocaleString('en-IN')}
+- Budget: Rs ${budget}
 - Preference: ${preference}
 
-Recommend exactly 5 bikes available in India that best fit this profile. Return ONLY a valid JSON array:
+Return ONLY a JSON array:
 [
   {
     "rank": 1,
@@ -135,20 +140,10 @@ Recommend exactly 5 bikes available in India that best fit this profile. Return 
     "pros": ["Smooth ride", "Low maintenance", "Wide service network"],
     "cons": ["Not great on highways"]
   }
-]
-Return ONLY the JSON array. No markdown.`;
+]`;
 
   try {
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 1500 }
-      })
-    });
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    const text = await callGroq(prompt, systemPrompt, 0.4, 1500);
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch {
@@ -157,14 +152,15 @@ Return ONLY the JSON array. No markdown.`;
 }
 
 export async function comparebikes(bike1, bike2) {
-  const prompt = `You are BikeIQ. Compare these two bikes for an Indian buyer and give a detailed verdict.
+  const systemPrompt = `You are a bike comparison API. Always respond with valid JSON only. No markdown, no explanation.`;
+  
+  const prompt = `Compare these two bikes for an Indian buyer:
+Bike 1: ${bike1.name} (Rs ${bike1.basePrice}, ${bike1.fuelType})
+Bike 2: ${bike2.name} (Rs ${bike2.basePrice}, ${bike2.fuelType})
 
-Bike 1: ${JSON.stringify(bike1)}
-Bike 2: ${JSON.stringify(bike2)}
-
-Return ONLY a valid JSON object:
+Return ONLY this JSON:
 {
-  "winner": "Bike name",
+  "winner": "bike name",
   "summary": "2-3 sentence overall verdict",
   "categories": {
     "value": {"winner": "bike name", "reason": "short reason"},
@@ -174,22 +170,12 @@ Return ONLY a valid JSON object:
     "features": {"winner": "bike name", "reason": "short reason"},
     "maintenance": {"winner": "bike name", "reason": "short reason"}
   },
-  "buyBike1If": "scenario where bike 1 is better choice",
-  "buyBike2If": "scenario where bike 2 is better choice"
-}
-Return ONLY the JSON.`;
+  "buyBike1If": "scenario where bike 1 is better",
+  "buyBike2If": "scenario where bike 2 is better"
+}`;
 
   try {
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
-      })
-    });
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const text = await callGroq(prompt, systemPrompt, 0.3, 1000);
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch {
