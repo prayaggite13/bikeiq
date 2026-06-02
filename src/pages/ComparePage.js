@@ -74,13 +74,52 @@ export default function ComparePage({ compareList, removeFromCompare, navigate }
       </div>
 
       {compareList.length === 0 && (
-        <div className="empty">
-          <div className="empty-icon">⚖️</div>
-          <h3>Nothing to compare</h3>
-          <p>Search a bike and tap Compare to add it here. Compare up to 3 bikes.</p>
-          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => navigate('search')}>
-            Search Bikes
-          </button>
+        <div className="fade-in">
+          <div style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(255,107,53,0.04))', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 20px', marginBottom: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚖️</div>
+            <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1.4rem', marginBottom: 8 }}>Compare Any 2 or 3 Bikes</div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.6, marginBottom: 20 }}>
+              Get a side-by-side spec comparison with AI verdict — who wins on value, performance, mileage, and more.
+            </p>
+            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => navigate('search')}>
+              <GitCompare size={16} /> Search a Bike to Add
+            </button>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>How it works</div>
+            {[
+              { step: '1', text: 'Search any bike from the Search tab', icon: '🔍' },
+              { step: '2', text: 'Tap the Compare button on the bike card', icon: '➕' },
+              { step: '3', text: 'Add a second (or third) bike the same way', icon: '🏍️' },
+              { step: '4', text: 'Come back here and tap Get AI Verdict', icon: '🤖' },
+            ].map(item => (
+              <div key={item.step} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent)', flexShrink: 0, fontFamily: 'Rajdhani' }}>
+                  {item.step}
+                </div>
+                <div style={{ fontSize: '0.85rem' }}>{item.icon} {item.text}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Popular comparisons</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                'Honda Activa 6G vs TVS Jupiter 125',
+                'Royal Enfield Classic 350 vs Jawa 42',
+                'Ola S1 Pro vs Ather 450X',
+                'KTM Duke 390 vs Yamaha MT-03',
+              ].map((comp, i) => (
+                <div key={i} className="card" style={{ cursor: 'pointer', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  onClick={() => navigate('search')}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>{comp}</span>
+                  <GitCompare size={14} color="var(--accent)" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
