@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Search, Zap, TrendingUp, Navigation, Calculator, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Zap, TrendingUp, Navigation, Calculator, ChevronRight, RefreshCw } from 'lucide-react';
+import { searchBikeInfo } from '../utils/gemini';
+import { formatINR } from '../utils/calculator';
 
 const POPULAR_SEARCHES = [
   'Royal Enfield Classic 350', 'Honda Activa 6G', 'Ola S1 Pro',
@@ -28,8 +30,94 @@ const CATEGORIES = [
   { label: 'Electric', query: 'Ola S1 Pro', icon: '⚡' },
 ];
 
-export default function HomePage({ navigate }) {
+const FEATURED_BIKES = [
+  'Honda Activa 6G',
+  'Royal Enfield Classic 350',
+  'Ola S1 Pro',
+  'Bajaj Pulsar NS200',
+  'Ather 450X',
+  'KTM Duke 390',
+];
+
+function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
+  const saved = isWatchlisted(bike);
+  return (
+    <div
+      className="card glow"
+      style={{ flexShrink: 0, width: 200, cursor: 'pointer' }}
+      onClick={() => navigate('bike', bike)}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <span className={`tag ${bike.fuelType === 'Electric' ? 'tag-ev' : 'tag-petrol'}`} style={{ fontSize: '0.65rem' }}>
+          {bike.fuelType === 'Electric' ? '⚡ EV' : '⛽ Petrol'}
+        </span>
+        <button
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: saved ? 'var(--accent3)' : 'var(--text3)', fontSize: '1rem', padding: 0 }}
+          onClick={e => { e.stopPropagation(); toggleWatchlist(bike); }}
+        >
+          {saved ? '♥' : '♡'}
+        </button>
+      </div>
+      <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1rem', lineHeight: 1.2, marginBottom: 2 }}>{bike.name}</div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginBottom: 8 }}>{bike.brand}</div>
+      <div style={{ fontFamily: 'Rajdhani', fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>
+        {formatINR(bike.basePrice)}
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {bike.mileage && (
+          <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '4px 8px', fontSize: '0.68rem', color: 'var(--text2)' }}>
+            ⛽ {bike.mileage.claimed}
+          </div>
+        )}
+        {bike.evSpecs && (
+          <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '4px 8px', fontSize: '0.68rem', color: 'var(--green)' }}>
+            ⚡ {bike.evSpecs.range?.claimed}
+          </div>
+        )}
+      </div>
+      {bike.ownerRating && (
+        <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--yellow)' }}>
+          ★ {bike.ownerRating} <span style={{ color: 'var(--text3)' }}>({bike.totalReviews?.toLocaleString()})</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
   const [query, setQuery] = useState('');
+  const [featuredBikes, setFeaturedBikes] = useState([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [featuredError, setFeaturedError] = useState(false);
+
+  useEffect(() => {
+    loadFeatured();
+  }, []);
+
+  const loadFeatured = async () => {
+    setLoadingFeatured(true);
+    setFeaturedError(false);
+    setFeaturedBikes([]);
+    try {
+      // Load first 3 quickly, then rest
+      const first3 = await Promise.all(
+        FEATURED_BIKES.slice(0, 3).map(name => searchBikeInfo(name))
+      );
+      const validFirst = first3.filter(Boolean);
+      setFeaturedBikes(validFirst);
+      setLoadingFeatured(false);
+
+      // Load remaining in background
+      const rest = await Promise.all(
+        FEATURED_BIKES.slice(3).map(name => searchBikeInfo(name))
+      );
+      const validRest = rest.filter(Boolean);
+      setFeaturedBikes(prev => [...prev, ...validRest]);
+    } catch {
+      setFeaturedError(true);
+      setLoadingFeatured(false);
+    }
+  };
 
   const handleSearch = (q) => {
     if (!q.trim()) return;
@@ -66,8 +154,6 @@ export default function HomePage({ navigate }) {
         <p style={{ fontSize: '0.85rem', color: 'var(--text2)', marginBottom: 20, lineHeight: 1.5 }}>
           Every bike. Every scooter. EV to petrol. Real specs, real prices across India.
         </p>
-
-        {/* Search */}
         <div className="search-bar">
           <Search size={18} color="var(--text3)" />
           <input
@@ -109,6 +195,65 @@ export default function HomePage({ navigate }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Featured Bikes */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div className="section-title" style={{ fontSize: '1rem', marginBottom: 0 }}>
+            🔥 Featured This Week
+          </div>
+          <button
+            className="icon-btn"
+            style={{ width: 30, height: 30 }}
+            onClick={loadFeatured}
+            title="Refresh"
+          >
+            <RefreshCw size={13} />
+          </button>
+        </div>
+
+        {loadingFeatured && featuredBikes.length === 0 && (
+          <div style={{ display: 'flex', gap: 12, overflow: 'hidden' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{
+                flexShrink: 0, width: 200, height: 160,
+                background: 'var(--bg2)', border: '1px solid var(--border)',
+                borderRadius: 16, animation: 'pulse 1.5s ease infinite',
+                animationDelay: `${i * 0.2}s`
+              }} />
+            ))}
+          </div>
+        )}
+
+        {featuredError && (
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text3)', fontSize: '0.82rem' }}>
+            Could not load featured bikes. <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={loadFeatured}>Retry</span>
+          </div>
+        )}
+
+        {featuredBikes.length > 0 && (
+          <div className="scroll-row">
+            {featuredBikes.map((bike, i) => (
+              <FeaturedBikeCard
+                key={i}
+                bike={bike}
+                navigate={navigate}
+                toggleWatchlist={toggleWatchlist}
+                isWatchlisted={isWatchlisted}
+              />
+            ))}
+            {loadingFeatured && (
+              <div style={{
+                flexShrink: 0, width: 200, height: 160,
+                background: 'var(--bg2)', border: '1px solid var(--border)',
+                borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <div className="spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Categories */}
