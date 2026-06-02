@@ -33,7 +33,7 @@ export default function HomePage({ navigate }) {
 
   const handleSearch = (q) => {
     if (!q.trim()) return;
-    navigate('search', { query: q });
+    navigate('search', { autoSearch: true, query: q });
   };
 
   return (
@@ -118,7 +118,7 @@ export default function HomePage({ navigate }) {
           {CATEGORIES.map(cat => (
             <div
               key={cat.label}
-              onClick={() => navigate('search', { query: cat.query })}
+              onClick={() => navigate('search', { autoSearch: true, query: cat.query })}
               style={{
                 flexShrink: 0,
                 background: 'var(--bg2)',
@@ -149,7 +149,7 @@ export default function HomePage({ navigate }) {
             <span
               key={name}
               className="chip"
-              onClick={() => navigate('search', { query: name })}
+              onClick={() => navigate('search', { autoSearch: true, query: name })}
             >
               {name}
             </span>
@@ -166,7 +166,7 @@ export default function HomePage({ navigate }) {
               key={brand.name}
               className="card"
               style={{ padding: '10px 8px', textAlign: 'center', cursor: 'pointer' }}
-              onClick={() => navigate('search', { query: `${brand.name} bike` })}
+              onClick={() => navigate('search', { autoSearch: true, query: `${brand.name} bike` })}
             >
               <div style={{ fontSize: '1.4rem', marginBottom: 4 }}>{brand.emoji}</div>
               <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text2)', lineHeight: 1.2 }}>{brand.name}</div>

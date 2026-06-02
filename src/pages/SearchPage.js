@@ -20,13 +20,15 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
   const [searched, setSearched] = useState(false);
 
   useEffect(() => {
-    if (selectedBike?.query) {
+    if (selectedBike?.autoSearch && selectedBike?.query) {
       const q = selectedBike.query;
       setQuery(q);
+      setLoading(true);
+      setSearched(true);
       searchBikeInfo(q).then(bike => {
         if (bike) setResults([bike]);
+        else setError('Could not find info on this bike. Try a different name.');
         setLoading(false);
-        setSearched(true);
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
