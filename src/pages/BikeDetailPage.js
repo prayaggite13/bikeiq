@@ -358,17 +358,46 @@ export default function BikeDetailPage({ selectedBike: bike, navigate, toggleWat
         {/* AI REVIEW */}
         {tab === 'AI Review' && (
           <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <Zap size={16} color="var(--accent)" />
               <span style={{ fontFamily: 'Rajdhani', fontWeight: 700 }}>AI Expert Review</span>
-              <span className="tag tag-new" style={{ fontSize: '0.65rem' }}>Powered by Gemini</span>
+              <span className="tag tag-new" style={{ fontSize: '0.65rem' }}>Powered by Groq</span>
             </div>
-            {aiLoading && <div className="loading"><div className="spinner" /><div style={{ fontSize: '0.82rem' }}>Generating review...</div></div>}
-            {aiReview && <div style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text2)', whiteSpace: 'pre-wrap' }}>{aiReview}</div>}
+            {aiLoading && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 16px', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.1)', borderRadius: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,212,255,0.15)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Zap size={14} color="var(--accent)" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 600 }}>BikeIQ AI is writing your review...</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 2 }}>Analyzing for Indian conditions</div>
+                  </div>
+                  <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2, marginLeft: 'auto', flexShrink: 0 }} />
+                </div>
+                {[100, 90, 95, 70, 85, 60, 92, 75, 88, 50, 80, 65].map((w, i) => (
+                  <div key={i} style={{ height: 12, borderRadius: 6, background: 'var(--bg3)', width: w + '%', marginBottom: 10, animation: 'pulse 1.5s ease infinite', animationDelay: (i * 0.08) + 's' }} />
+                ))}
+              </div>
+            )}
+            {aiReview && !aiLoading && (
+              <div className="fade-in">
+                <div style={{ fontSize: '0.85rem', lineHeight: 1.8, color: 'var(--text2)', whiteSpace: 'pre-wrap' }}>{aiReview}</div>
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>AI-generated - Not a substitute for test ride</span>
+                  <button className="btn btn-outline btn-sm" onClick={fetchAIReview}>Regenerate</button>
+                </div>
+              </div>
+            )}
             {!aiLoading && !aiReview && (
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={fetchAIReview}>
-                <Zap size={14} /> Generate AI Review
-              </button>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: '2rem', marginBottom: 12 }}>🤖</div>
+                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>Get AI Expert Review</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text3)', marginBottom: 16, lineHeight: 1.5 }}>Detailed analysis for Indian buyers - performance, mileage, value, who should buy it</div>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={fetchAIReview}>
+                  <Zap size={14} /> Generate Review
+                </button>
+              </div>
             )}
           </div>
         )}
