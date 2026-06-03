@@ -66,7 +66,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [brandMode, setBrandMode] = useState(null);
-  const [brandBikesList, setBrandBikesList] = useState([]);
+  const [, setBrandBikesList] = useState([]);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -89,21 +89,23 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
     const { isBrand, brand, bikes } = getBrandBikes(q);
 
     if (isBrand) {
-      // Brand mode — load multiple bikes
+      // Brand mode — load bikes one by one to avoid rate limits
       setBrandMode(brand);
-      setBrandBikesList(bikes);
       setLoading(true);
       setSearched(true);
 
-      // Load first 2 immediately
-      const first2 = await Promise.all(bikes.slice(0, 2).map(name => searchBikeInfo(name)));
-      setResults(first2.filter(Boolean));
+      // Load first bike immediately
+      const firstBike = await searchBikeInfo(bikes[0]);
+      if (firstBike) setResults([firstBike]);
       setLoading(false);
 
-      // Load rest in background
+      // Load rest one by one with small delay
       setLoadingMore(true);
-      const rest = await Promise.all(bikes.slice(2).map(name => searchBikeInfo(name)));
-      setResults(prev => [...prev, ...rest.filter(Boolean)]);
+      for (let i = 1; i < bikes.length; i++) {
+        await new Promise(r => setTimeout(r, 1500));
+        const bike = await searchBikeInfo(bikes[i]);
+        if (bike) setResults(prev => [...prev, bike]);
+      }
       setLoadingMore(false);
     } else {
       // Single bike search

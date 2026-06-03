@@ -1,7 +1,7 @@
 const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-async function callGroq(prompt, systemPrompt = '', temperature = 0.7, maxTokens = 1024) {
+async function callGroq(prompt, systemPrompt = '', temperature = 0.7, maxTokens = 1024, retries = 2) {
   try {
     const messages = [];
     if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
@@ -20,6 +20,13 @@ async function callGroq(prompt, systemPrompt = '', temperature = 0.7, maxTokens 
         max_tokens: maxTokens
       })
     });
+
+    if (res.status === 429 && retries > 0) {
+      // Rate limited — wait and retry
+      await new Promise(r => setTimeout(r, 3000));
+      return callGroq(prompt, systemPrompt, temperature, maxTokens, retries - 1);
+    }
+
     const data = await res.json();
     return data?.choices?.[0]?.message?.content || '';
   } catch (err) {
