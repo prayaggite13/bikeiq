@@ -195,6 +195,28 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
               </div>
             </div>
           </div>
+          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('firstbike')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 38, height: 38, background: 'rgba(0,230,118,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
+                🌱
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>First Bike Finder</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>For students & beginners</div>
+              </div>
+            </div>
+          </div>
+          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('insurance')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 38, height: 38, background: 'rgba(0,230,118,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
+                🛡️
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Insurance Estimator</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>Calculate your premium</div>
+              </div>
+            </div>
+          </div>
           <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('resale')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 38, height: 38, background: 'rgba(179,136,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>

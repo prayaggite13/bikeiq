@@ -12,6 +12,8 @@ import CommuteFinderPage from './pages/CommuteFinderPage';
 import OwnershipPage from './pages/OwnershipPage';
 import BikeQuizPage from './pages/BikeQuizPage';
 import ResalePage from './pages/ResalePage';
+import FirstBikePage from './pages/FirstBikePage';
+import InsurancePage from './pages/InsurancePage';
 import './App.css';
 
 export default function App() {
@@ -66,6 +68,8 @@ export default function App() {
         {page === 'ownership' && <OwnershipPage {...props} />}
         {page === 'quiz' && <BikeQuizPage {...props} />}
         {page === 'resale' && <ResalePage {...props} />}
+        {page === 'firstbike' && <FirstBikePage {...props} />}
+        {page === 'insurance' && <InsurancePage {...props} />}
       </main>
       <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
     </div>

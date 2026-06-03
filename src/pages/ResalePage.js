@@ -57,9 +57,9 @@ const ALL_BIKES = [
   'Yamaha Alpha', 'Yamaha Cygnus Ray', 'Yamaha YZF R3',
 
   // Suzuki — current & old
-'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
-'Suzuki Access 125', 'Suzuki Burgman Street', "Suzuki Let's", 'Suzuki Swish 125',
-'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
+  'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
+  'Suzuki Access 125', 'Suzuki Burgman Street', 'Suzuki Let's', 'Suzuki Swish 125',
+  'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
 
   // KTM — current & old
   'KTM Duke 390', 'KTM Duke 250', 'KTM Duke 200', 'KTM Duke 125',
@@ -123,6 +123,7 @@ export default function ResalePage({ navigate }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(false);
 
   const handleInputChange = (val) => {
     setBikeName(val);
@@ -154,10 +155,18 @@ Give realistic Indian used bike market resale estimate.`;
     try {
       const response = await askGemini(prompt, SYSTEM_PROMPT);
       const clean = response.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-      setResult(parsed);
-    } catch {
-      setResult(null);
+      // Find JSON object in response
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setResult(parsed);
+        setError(false);
+      } else {
+        setError(true);
+      }
+    } catch (e) {
+      console.error('Resale parse error:', e);
+      setError(true);
     }
     setLoading(false);
   };
@@ -306,6 +315,16 @@ Give realistic Indian used bike market resale estimate.`;
         <div className="loading">
           <div className="spinner" />
           <div style={{ fontSize: '0.82rem' }}>Analyzing Indian used bike market...</div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div className="card" style={{ textAlign: 'center', padding: 24, border: '1px solid rgba(255,82,82,0.2)', background: 'rgba(255,82,82,0.04)' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 10 }}>⚠️</div>
+          <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, marginBottom: 6 }}>Couldn't calculate right now</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text3)', marginBottom: 16 }}>AI rate limit hit. Please wait 10 seconds and try again.</div>
+          <button className="btn btn-primary btn-sm" onClick={calculate}>Try Again</button>
         </div>
       )}
 
