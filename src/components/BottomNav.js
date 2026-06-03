@@ -1,10 +1,11 @@
 import React from 'react';
-import { Home, Search, GitCompare, Heart, Newspaper, Bot } from 'lucide-react';
+import { Home, Search, GitCompare, Heart, Newspaper, Bot, HelpCircle } from 'lucide-react';
 
 const navItems = [
   { id: 'home', icon: Home, label: 'Home' },
   { id: 'search', icon: Search, label: 'Search' },
   { id: 'compare', icon: GitCompare, label: 'Compare' },
+  { id: 'quiz', icon: HelpCircle, label: 'Quiz' },
   { id: 'news', icon: Newspaper, label: 'News' },
   { id: 'ai', icon: Bot, label: 'AI' },
   { id: 'watchlist', icon: Heart, label: 'Saved' },

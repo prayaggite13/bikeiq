@@ -10,6 +10,7 @@ import NewsPage from './pages/NewsPage';
 import AIPage from './pages/AIPage';
 import CommuteFinderPage from './pages/CommuteFinderPage';
 import OwnershipPage from './pages/OwnershipPage';
+import BikeQuizPage from './pages/BikeQuizPage';
 import './App.css';
 
 export default function App() {
@@ -62,6 +63,7 @@ export default function App() {
         {page === 'ai' && <AIPage {...props} />}
         {page === 'commute' && <CommuteFinderPage {...props} />}
         {page === 'ownership' && <OwnershipPage {...props} />}
+        {page === 'quiz' && <BikeQuizPage {...props} />}
       </main>
       <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
     </div>
