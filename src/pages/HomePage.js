@@ -195,6 +195,17 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
               </div>
             </div>
           </div>
+          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('resale')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 38, height: 38, background: 'rgba(179,136,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
+                📉
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Resale Predictor</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>Know your bike's worth</div>
+              </div>
+            </div>
+          </div>
           <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('ownership')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 38, height: 38, background: 'rgba(255,107,53,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
