@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Zap, TrendingUp, Navigation, Calculator, ChevronRight, RefreshCw } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
+import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
 
 const POPULAR_SEARCHES = [
@@ -196,6 +197,9 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
           </div>
         </div>
       </div>
+
+      {/* Browse Bikes - Trending/Popular/Electric/Upcoming */}
+      <FeaturedSection navigate={navigate} />
 
       {/* Featured Bikes */}
       <div style={{ marginBottom: 20 }}>
