@@ -93,16 +93,16 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
       setLoading(true);
       setSearched(true);
 
-      // Load first bike immediately
-      const firstBike = await searchBikeInfo(bikes[0]);
+      // Load first 3 bikes only (faster, less rate limiting)
+      const topBikes = bikes.slice(0, 3);
+      const firstBike = await searchBikeInfo(topBikes[0]);
       if (firstBike) setResults([firstBike]);
       setLoading(false);
 
-      // Load rest one by one with small delay
       setLoadingMore(true);
-      for (let i = 1; i < bikes.length; i++) {
-        await new Promise(r => setTimeout(r, 1500));
-        const bike = await searchBikeInfo(bikes[i]);
+      for (let i = 1; i < topBikes.length; i++) {
+        await new Promise(r => setTimeout(r, 1200));
+        const bike = await searchBikeInfo(topBikes[i]);
         if (bike) setResults(prev => [...prev, bike]);
       }
       setLoadingMore(false);
