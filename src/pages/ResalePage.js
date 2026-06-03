@@ -57,9 +57,9 @@ const ALL_BIKES = [
   'Yamaha Alpha', 'Yamaha Cygnus Ray', 'Yamaha YZF R3',
 
   // Suzuki — current & old
-  'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
-  'Suzuki Access 125', 'Suzuki Burgman Street', 'Suzuki Let's', 'Suzuki Swish 125',
-  'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
+'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
+'Suzuki Access 125', 'Suzuki Burgman Street', "Suzuki Let's", 'Suzuki Swish 125',
+'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
 
   // KTM — current & old
   'KTM Duke 390', 'KTM Duke 250', 'KTM Duke 200', 'KTM Duke 125',
