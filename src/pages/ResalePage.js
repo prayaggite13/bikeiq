@@ -4,16 +4,79 @@ import { askGemini } from '../utils/gemini';
 import { formatINR } from '../utils/calculator';
 
 const ALL_BIKES = [
-  'Honda Activa 6G', 'Honda SP 125', 'Honda Shine', 'Honda CB350', 'Honda Hornet 2.0',
-  'TVS Apache RTR 160', 'TVS Apache RTR 200', 'TVS Apache RR 310', 'TVS Ntorq 125', 'TVS Jupiter 125',
-  'Hero Splendor Plus', 'Hero HF Deluxe', 'Hero Glamour', 'Hero Xtreme 160R', 'Hero Xpulse 200',
-  'Bajaj Pulsar NS200', 'Bajaj Pulsar 150', 'Bajaj Pulsar N160', 'Bajaj Dominar 400', 'Bajaj Avenger 220',
-  'Royal Enfield Classic 350', 'Royal Enfield Meteor 350', 'Royal Enfield Himalayan', 'Royal Enfield Hunter 350', 'Royal Enfield Bullet 350',
-  'Yamaha R15 V4', 'Yamaha MT-15', 'Yamaha FZ-S V3', 'Yamaha Fascino 125', 'Yamaha RayZR 125',
-  'KTM Duke 390', 'KTM Duke 200', 'KTM Duke 125', 'KTM RC 390', 'KTM 390 Adventure',
-  'Ola S1 Pro', 'Ola S1 Air', 'Ather 450X', 'Ather 450S', 'Ather Rizta',
-  'Simple One', 'Revolt RV400', 'Bajaj Chetak Electric',
-  'BMW G 310 R', 'Kawasaki Ninja 300', 'Triumph Speed 400', 'Jawa 42', 'Suzuki Gixxer SF',
+  // Honda — current & old
+  'Honda Activa 6G', 'Honda Activa 5G', 'Honda Activa 4G', 'Honda Activa 3G', 'Honda Activa 125',
+  'Honda Activa i', 'Honda Dio', 'Honda Grazia', 'Honda Aviator',
+  'Honda SP 125', 'Honda Shine', 'Honda Shine SP', 'Honda CB Shine', 'Honda CB Unicorn',
+  'Honda CB Unicorn 160', 'Honda CB Trigger', 'Honda CB Twister', 'Honda CB350', 'Honda CB350RS',
+  'Honda Hornet 2.0', 'Honda CB Hornet 160R', 'Honda CBR 150R', 'Honda CBR 250R',
+  'Honda Livo', 'Honda Dream Yuga', 'Honda Dream Neo', 'Honda CD 110 Dream',
+  'Honda Africa Twin', 'Honda CB500F',
+
+  // Hero — current & old
+  'Hero Splendor Plus', 'Hero Splendor iSmart', 'Hero Splendor Pro', 'Hero Super Splendor',
+  'Hero HF Deluxe', 'Hero HF Dawn', 'Hero HF Eco', 'Hero Passion Pro', 'Hero Passion X Pro',
+  'Hero Glamour', 'Hero Glamour FI', 'Hero Achiever', 'Hero Ignitor', 'Hero Hunk',
+  'Hero Xtreme 160R', 'Hero Xtreme Sports', 'Hero Xtreme 200R', 'Hero Xtreme 200S',
+  'Hero Xpulse 200', 'Hero Xpulse 200T', 'Hero Karizma R', 'Hero Karizma ZMR',
+  'Hero Destini 125', 'Hero Maestro Edge', 'Hero Maestro Edge 125', 'Hero Pleasure',
+  'Hero Pleasure Plus', 'Hero Duet', 'Hero Duet 125',
+
+  // TVS — current & old
+  'TVS Apache RTR 160', 'TVS Apache RTR 160 4V', 'TVS Apache RTR 180', 'TVS Apache RTR 200 4V',
+  'TVS Apache RR 310', 'TVS Ntorq 125', 'TVS Jupiter 125', 'TVS Jupiter Classic',
+  'TVS Jupiter', 'TVS Wego', 'TVS Scooty Pep Plus', 'TVS Scooty Zest', 'TVS Scooty Streak',
+  'TVS Star City Plus', 'TVS Radeon', 'TVS Sport', 'TVS Max 4R', 'TVS Victor', 'TVS Raider 125',
+  'TVS Ronin', 'TVS iQube Electric',
+
+  // Bajaj — current & old
+  'Bajaj Pulsar 150', 'Bajaj Pulsar 150 Twin Disc', 'Bajaj Pulsar 180', 'Bajaj Pulsar 180F',
+  'Bajaj Pulsar 200 NS', 'Bajaj Pulsar NS200', 'Bajaj Pulsar RS200', 'Bajaj Pulsar 220F',
+  'Bajaj Pulsar AS150', 'Bajaj Pulsar AS200', 'Bajaj Pulsar N160', 'Bajaj Pulsar N250',
+  'Bajaj Dominar 400', 'Bajaj Dominar 250', 'Bajaj Avenger 220', 'Bajaj Avenger 220 Cruise',
+  'Bajaj Avenger 150', 'Bajaj Avenger 160 Street', 'Bajaj Avenger 220 Street',
+  'Bajaj CT 100', 'Bajaj CT 110', 'Bajaj Platina 100', 'Bajaj Platina 110 H Gear',
+  'Bajaj Discover 100', 'Bajaj Discover 125', 'Bajaj Discover 150',
+  'Bajaj Chetak Electric', 'Bajaj Chetak',
+
+  // Royal Enfield — current & old
+  'Royal Enfield Classic 350', 'Royal Enfield Classic 500', 'Royal Enfield Classic 350 Signals',
+  'Royal Enfield Bullet 350', 'Royal Enfield Bullet 500', 'Royal Enfield Bullet Electra',
+  'Royal Enfield Thunderbird 350', 'Royal Enfield Thunderbird 500', 'Royal Enfield Thunderbird 350X',
+  'Royal Enfield Himalayan', 'Royal Enfield Meteor 350', 'Royal Enfield Hunter 350',
+  'Royal Enfield Continental GT 535', 'Royal Enfield Continental GT 650',
+  'Royal Enfield Interceptor 650', 'Royal Enfield Super Meteor 650',
+  'Royal Enfield Guerrilla 450', 'Royal Enfield Shotgun 650',
+
+  // Yamaha — current & old
+  'Yamaha R15 V4', 'Yamaha R15 V3', 'Yamaha R15 V2', 'Yamaha R15 S',
+  'Yamaha MT-15', 'Yamaha MT-15 V2', 'Yamaha FZ-S V3', 'Yamaha FZ-S V2', 'Yamaha FZ-S',
+  'Yamaha FZ 25', 'Yamaha FZS 25', 'Yamaha Fazer 25', 'Yamaha Fazer FI V2',
+  'Yamaha SZ-RR', 'Yamaha SZ-S', 'Yamaha SS125', 'Yamaha Saluto',
+  'Yamaha Fascino 125', 'Yamaha Fascino', 'Yamaha RayZR 125', 'Yamaha Ray ZR Street Rally',
+  'Yamaha Alpha', 'Yamaha Cygnus Ray', 'Yamaha YZF R3',
+
+  // Suzuki — current & old
+  'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
+  'Suzuki Access 125', 'Suzuki Burgman Street', 'Suzuki Let's', 'Suzuki Swish 125',
+  'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
+
+  // KTM — current & old
+  'KTM Duke 390', 'KTM Duke 250', 'KTM Duke 200', 'KTM Duke 125',
+  'KTM RC 390', 'KTM RC 200', 'KTM RC 125', 'KTM 390 Adventure',
+
+  // EV
+  'Ola S1 Pro', 'Ola S1 Air', 'Ola S1 X', 'Ather 450X', 'Ather 450S', 'Ather Rizta',
+  'Ather 450 Plus', 'Ather 340', 'Simple One', 'Revolt RV400', 'Revolt RV300',
+  'Bajaj Chetak Electric', 'TVS iQube Electric', 'Hero Vida V1 Pro',
+
+  // Others
+  'BMW G 310 R', 'BMW G 310 GS', 'Kawasaki Ninja 300', 'Kawasaki Ninja 650', 'Kawasaki Z400',
+  'Triumph Speed 400', 'Triumph Scrambler 400', 'Jawa 42', 'Jawa Perak', 'Jawa 350',
+  'Mahindra Mojo', 'Mahindra Gusto', 'Mahindra Centuro',
+  'India Yamaha SZ', 'Hyosung GT250R', 'Benelli TNT 300', 'Benelli TNT 600',
+  'Honda CB650F', 'Honda CBR650F', 'Ducati Monster', 'Harley Davidson Street 750',
+  'Harley Davidson Iron 883',
 ];
 
 const CONDITIONS = [
