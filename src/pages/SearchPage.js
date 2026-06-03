@@ -66,7 +66,6 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [brandMode, setBrandMode] = useState(null);
-  const [, setBrandBikesList] = useState([]);
   const inputRef = useRef(null);
 
   useEffect(() => {
