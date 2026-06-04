@@ -9,7 +9,7 @@ const navItems = [
   { id: 'roadtax', label: 'Road Tax', icon: '🛣️' },
   { id: 'news', icon: Newspaper, label: 'News' },
   { id: 'ai', icon: Bot, label: 'AI' },
-  { id: 'bikeiqplus', label: 'BikeIQ+', icon: '⚡' }
+  { id: 'bikeiqplus', label: 'BikeIQ+', icon: '⚡' },
   { id: 'watchlist', icon: Heart, label: 'Saved' },
 ];
 
