@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/groq';
+import { groqJSON } from '../utils/gemini';
 
 const SYMPTOMS = [
   'Loud accident impact', 'Frame damage visible', 'Continuous vibration',

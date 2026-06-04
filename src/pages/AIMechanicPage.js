@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/groq';
+import { groqJSON } from '../utils/gemini';
 
 const QUICK_ISSUES = [
   'Engine not starting', 'Unusual knocking sound', 'Excessive vibration',

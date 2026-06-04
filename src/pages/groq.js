@@ -1,4 +1,4 @@
-// utils/groq.js
+// utils/gemini.js
 // Shared Groq API helper for BikeIQ+ pages
 
 const GROQ_KEY = process.env.REACT_APP_GROQ_API_KEY;

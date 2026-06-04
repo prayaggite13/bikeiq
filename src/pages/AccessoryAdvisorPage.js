@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/groq';
+import { groqJSON } from '../utils/gemini';
 
 const USAGE_TYPES = ['Daily Commute', 'Long Distance Touring', 'Weekend Rides', 'Off-Roading', 'Track / Sport', 'Delivery / Commercial'];
 const BUDGETS = ['Under ₹5,000', '₹5,000 – ₹15,000', '₹15,000 – ₹30,000', '₹30,000+'];

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/groq';
+import { groqJSON } from '../utils/gemini';
 
 const CONDITIONS = [
   { id: 'excellent', label: 'Excellent', desc: 'Like new, no scratches', color: 'var(--green)' },

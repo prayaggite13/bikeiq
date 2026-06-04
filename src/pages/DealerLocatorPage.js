@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/groq';
+import { groqJSON } from '../utils/gemini';
 
 const BRANDS = ['Hero', 'Honda', 'Bajaj', 'TVS', 'Royal Enfield', 'Yamaha', 'Suzuki', 'KTM', 'Ola Electric', 'Ather', 'Simple Energy', 'Revolt', 'BMW', 'Kawasaki', 'Triumph', 'Harley-Davidson'];
 
