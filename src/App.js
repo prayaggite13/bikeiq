@@ -15,6 +15,13 @@ import ResalePage from './pages/ResalePage';
 import FirstBikePage from './pages/FirstBikePage';
 import InsurancePage from './pages/InsurancePage';
 import RoadTaxPage from './pages/RoadTaxPage';
+import BikeIQPlusPage from './pages/BikeIQPlusPage';
+import AIMechanicPage from './pages/AIMechanicPage';
+import BikeHealthPage from './pages/BikeHealthPage';
+import ServiceCenterPage from './pages/ServiceCenterPage';
+import DealerLocatorPage from './pages/DealerLocatorPage';
+import AccessoryAdvisorPage from './pages/AccessoryAdvisorPage';
+import UsedPricePage from './pages/UsedPricePage';
 import './App.css';
 
 export default function App() {
@@ -52,28 +59,43 @@ export default function App() {
 
   const isWatchlisted = (bike) => watchlist.some(b => b.name === bike?.name);
 
-  const props = { navigate, selectedBike, compareList, addToCompare, removeFromCompare, watchlist, toggleWatchlist, isWatchlisted, darkMode, setDarkMode };
+  const props = {
+    navigate, selectedBike, compareList, addToCompare, removeFromCompare,
+    watchlist, toggleWatchlist, isWatchlisted, darkMode, setDarkMode,
+  };
 
   return (
     <div className="app">
       <Header {...props} page={page} />
       <main className="main-content">
-        {page === 'home' && <HomePage {...props} />}
-        {page === 'search' && <SearchPage {...props} />}
-        {page === 'bike' && <BikeDetailPage {...props} />}
-        {page === 'compare' && <ComparePage {...props} />}
-        {page === 'watchlist' && <WatchlistPage {...props} />}
-        {page === 'news' && <NewsPage {...props} />}
-        {page === 'ai' && <AIPage {...props} />}
-        {page === 'commute' && <CommuteFinderPage {...props} />}
-        {page === 'ownership' && <OwnershipPage {...props} />}
-        {page === 'quiz' && <BikeQuizPage {...props} />}
-        {page === 'resale' && <ResalePage {...props} />}
-        {page === 'firstbike' && <FirstBikePage {...props} />}
-        {page === 'insurance' && <InsurancePage {...props} />}
-        {page === 'roadtax' && <RoadTaxPage {...props} />}
+        {page === 'home'         && <HomePage {...props} />}
+        {page === 'search'       && <SearchPage {...props} />}
+        {page === 'bike'         && <BikeDetailPage {...props} />}
+        {page === 'compare'      && <ComparePage {...props} />}
+        {page === 'watchlist'    && <WatchlistPage {...props} />}
+        {page === 'news'         && <NewsPage {...props} />}
+        {page === 'ai'           && <AIPage {...props} />}
+        {page === 'commute'      && <CommuteFinderPage {...props} />}
+        {page === 'ownership'    && <OwnershipPage {...props} />}
+        {page === 'quiz'         && <BikeQuizPage {...props} />}
+        {page === 'resale'       && <ResalePage {...props} />}
+        {page === 'firstbike'    && <FirstBikePage {...props} />}
+        {page === 'insurance'    && <InsurancePage {...props} />}
+        {page === 'roadtax'      && <RoadTaxPage {...props} />}
+        {page === 'bikeiqplus'   && <BikeIQPlusPage {...props} />}
+        {page === 'mechanic'     && <AIMechanicPage {...props} />}
+        {page === 'health'       && <BikeHealthPage {...props} />}
+        {page === 'servicecenter'&& <ServiceCenterPage {...props} />}
+        {page === 'dealer'       && <DealerLocatorPage {...props} />}
+        {page === 'accessory'    && <AccessoryAdvisorPage {...props} />}
+        {page === 'usedprice'    && <UsedPricePage {...props} />}
       </main>
-      <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
+      <BottomNav
+        page={page}
+        navigate={navigate}
+        compareCount={compareList.length}
+        watchlistCount={watchlist.length}
+      />
     </div>
   );
 }
