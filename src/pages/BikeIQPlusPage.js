@@ -1,138 +1,147 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 
 const TOOLS = [
+  // Finders
   {
-    id: 'mechanic',
-    icon: '🔧',
-    title: 'AI Mechanic',
-    subtitle: 'Diagnose any bike issue instantly',
-    desc: 'Describe your problem — get possible causes, fixes & parts needed.',
-    color: '#00d4ff',
-    bg: '#00d4ff11',
-    border: '#00d4ff33',
+    category: 'Find Your Bike',
+    color: 'rgba(0,212,255,0.08)',
+    border: 'rgba(0,212,255,0.2)',
+    accent: 'var(--accent)',
+    items: [
+      { id: 'quiz', emoji: '🎯', title: 'Bike Quiz', desc: 'Answer 6 questions — AI finds your perfect bike match' },
+      { id: 'commute', emoji: '🧭', title: 'Commute Finder', desc: 'Input your daily km, road type & budget — get top picks' },
+      { id: 'firstbike', emoji: '🌱', title: 'First Bike Finder', desc: 'For students & beginners — easiest bikes to start with' },
+    ]
   },
+  // Calculators
   {
-    id: 'health',
-    icon: '🩺',
-    title: 'Bike Health Advisor',
-    subtitle: 'Accident, noise, vibration analysis',
-    desc: 'AI estimates severity, repair cost & whether immediate service is needed.',
-    color: '#ff6b35',
-    bg: '#ff6b3511',
-    border: '#ff6b3533',
+    category: 'Cost & Finance',
+    color: 'rgba(255,107,53,0.08)',
+    border: 'rgba(255,107,53,0.2)',
+    accent: 'var(--accent3)',
+    items: [
+      { id: 'ownership', emoji: '💰', title: 'Ownership Calculator', desc: 'True 3-5 year cost — fuel, insurance, service, EMI' },
+      { id: 'insurance', emoji: '🛡️', title: 'Insurance Estimator', desc: 'City + bike + NCB → estimated annual premium' },
+      { id: 'roadtax', emoji: '📋', title: 'Road Tax Calculator', desc: 'State-wise RTO charges + full on-road price breakdown' },
+      { id: 'resale', emoji: '📉', title: 'Resale Predictor', desc: 'Input age & km → AI predicts your bike\'s resale value' },
+      { id: 'usedprice', emoji: '💸', title: 'Used Bike Price Checker', desc: 'Fair market value for any used bike in India' },
+    ]
   },
+  // AI Tools
   {
-    id: 'servicecenter',
-    icon: '🏪',
-    title: 'Service Center Locator',
-    subtitle: 'Find authorized service centers',
-    desc: 'Search by city, pincode or GPS. Get contact details & directions.',
-    color: '#00ff88',
-    bg: '#00ff8811',
-    border: '#00ff8833',
+    category: 'AI Diagnosis',
+    color: 'rgba(0,230,118,0.08)',
+    border: 'rgba(0,230,118,0.2)',
+    accent: 'var(--green)',
+    items: [
+      { id: 'mechanic', emoji: '🔧', title: 'AI Mechanic', desc: 'Describe your bike problem — get instant diagnosis & fix' },
+      { id: 'health', emoji: '🩺', title: 'Bike Health Advisor', desc: 'Accident or damage? AI estimates severity & repair cost' },
+      { id: 'accessory', emoji: '🎽', title: 'AI Accessory Advisor', desc: 'Get helmet, gear & luggage recommendations for your ride' },
+    ]
   },
+  // Locators
   {
-    id: 'dealer',
-    icon: '🏬',
-    title: 'Dealer Locator',
-    subtitle: 'Find nearby dealerships',
-    desc: 'Search by brand, city or pincode. Address, phone & map directions.',
-    color: '#a855f7',
-    bg: '#a855f711',
-    border: '#a855f733',
-  },
-  {
-    id: 'accessory',
-    icon: '🎽',
-    title: 'AI Accessory Advisor',
-    subtitle: 'Perfect gear for your ride',
-    desc: 'Get helmet, gear, luggage & touring accessory recommendations for your bike.',
-    color: '#fbbf24',
-    bg: '#fbbf2411',
-    border: '#fbbf2433',
-  },
-  {
-    id: 'usedprice',
-    icon: '💰',
-    title: 'Used Bike Price Checker',
-    subtitle: 'Fair market value estimator',
-    desc: 'Enter model, year, km & condition — get resale range & fair price.',
-    color: '#f472b6',
-    bg: '#f472b611',
-    border: '#f472b633',
+    category: 'Locate & Find',
+    color: 'rgba(179,136,255,0.08)',
+    border: 'rgba(179,136,255,0.2)',
+    accent: 'var(--purple)',
+    items: [
+      { id: 'servicecenter', emoji: '🏪', title: 'Service Center Locator', desc: 'Find authorized service centers by city or GPS' },
+      { id: 'dealer', emoji: '🏬', title: 'Dealer Locator', desc: 'Find nearby dealerships with offers & test ride info' },
+    ]
   },
 ];
 
 export default function BikeIQPlusPage({ navigate }) {
-  const s = {
-    page: { minHeight: '100vh', background: '#0a0a0a', color: '#e0e0e0', paddingBottom: 100 },
-    hero: {
-      padding: '28px 16px 20px',
-      background: 'linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%)',
-      borderBottom: '1px solid #1a1a1a',
-    },
-    badge: {
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'linear-gradient(135deg, #00d4ff22, #a855f722)',
-      border: '1px solid #00d4ff44',
-      borderRadius: 20, padding: '4px 12px',
-      fontSize: 11, fontWeight: 700, color: '#00d4ff',
-      letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12,
-    },
-    title: { fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 6px', lineHeight: 1.2 },
-    sub: { fontSize: 13, color: '#666', margin: 0 },
-    grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '20px 16px' },
-    card: (tool) => ({
-      background: tool.bg,
-      border: `1px solid ${tool.border}`,
-      borderRadius: 16,
-      padding: '18px 14px',
-      cursor: 'pointer',
-      transition: 'transform 0.15s, box-shadow 0.15s',
-      position: 'relative',
-      overflow: 'hidden',
-    }),
-    iconBox: (tool) => ({
-      width: 44, height: 44, borderRadius: 12,
-      background: `${tool.color}22`,
-      border: `1px solid ${tool.color}44`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 22, marginBottom: 10,
-    }),
-    cardTitle: { fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 3 },
-    cardSub: { fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 },
-    cardDesc: { fontSize: 11, color: '#666', lineHeight: 1.5 },
-    arrow: (tool) => ({
-      position: 'absolute', bottom: 12, right: 12,
-      fontSize: 16, color: tool.color, opacity: 0.7,
-    }),
-  };
+  const [activeCategory, setActiveCategory] = useState('All');
+  const categories = ['All', ...TOOLS.map(t => t.category)];
+
+  const filtered = activeCategory === 'All'
+    ? TOOLS
+    : TOOLS.filter(t => t.category === activeCategory);
+
+  const totalTools = TOOLS.reduce((sum, t) => sum + t.items.length, 0);
 
   return (
-    <div style={s.page}>
-      <div style={s.hero}>
-        <div style={s.badge}>⚡ BikeIQ+</div>
-        <h1 style={s.title}>Premium AI Tools</h1>
-        <p style={s.sub}>Diagnose, locate, advise — all in one place</p>
+    <div className="page">
+      {/* Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(179,136,255,0.1) 0%, rgba(0,212,255,0.06) 100%)',
+        border: '1px solid rgba(179,136,255,0.2)',
+        borderRadius: 20, padding: '20px', marginBottom: 20,
+        position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: 'radial-gradient(circle, rgba(179,136,255,0.2) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <Sparkles size={20} color="var(--purple)" />
+          <span style={{ fontFamily: 'Rajdhani', fontWeight: 800, fontSize: '1.5rem', color: 'var(--purple)' }}>BikeIQ+</span>
+          <span style={{ background: 'rgba(179,136,255,0.15)', color: 'var(--purple)', border: '1px solid rgba(179,136,255,0.3)', borderRadius: 20, padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700 }}>{totalTools} Tools</span>
+        </div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text2)', lineHeight: 1.5 }}>
+          Diagnose, calculate, locate, advise — everything a bike owner needs, all in one place.
+        </p>
       </div>
 
-      <div style={s.grid}>
-        {TOOLS.map(tool => (
-          <div
-            key={tool.id}
-            style={s.card(tool)}
-            onClick={() => navigate(tool.id)}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${tool.color}22`; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+      {/* Category filter */}
+      <div className="chip-row" style={{ marginBottom: 20 }}>
+        {categories.map(cat => (
+          <span
+            key={cat}
+            className={`chip ${activeCategory === cat ? 'active' : ''}`}
+            onClick={() => setActiveCategory(cat)}
           >
-            <div style={s.iconBox(tool)}>{tool.icon}</div>
-            <div style={s.cardTitle}>{tool.title}</div>
-            <div style={s.cardSub}>{tool.subtitle}</div>
-            <div style={s.cardDesc}>{tool.desc}</div>
-            <div style={s.arrow(tool)}>→</div>
-          </div>
+            {cat}
+          </span>
         ))}
       </div>
+
+      {/* Tool groups */}
+      {filtered.map((group, gi) => (
+        <div key={gi} style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1rem', marginBottom: 12, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 4, height: 16, borderRadius: 2, background: group.accent }} />
+            {group.category}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {group.items.map((tool, ti) => (
+              <div
+                key={ti}
+                onClick={() => navigate(tool.id)}
+                className="fade-in"
+                style={{
+                  background: group.color,
+                  border: `1px solid ${group.border}`,
+                  borderRadius: 16, padding: '16px',
+                  cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: 14,
+                  transition: 'all 0.2s',
+                  animationDelay: `${ti * 0.05}s`
+                }}
+              >
+                <div style={{
+                  width: 48, height: 48, borderRadius: 14,
+                  background: group.color.replace('0.08', '0.15'),
+                  border: `1px solid ${group.border}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.5rem', flexShrink: 0
+                }}>
+                  {tool.emoji}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: 3 }}>
+                    {tool.title}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text3)', lineHeight: 1.4 }}>
+                    {tool.desc}
+                  </div>
+                </div>
+                <div style={{ color: group.accent, fontSize: '1.1rem', flexShrink: 0 }}>→</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

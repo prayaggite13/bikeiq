@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, TrendingUp, Navigation, Calculator, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Zap, TrendingUp, ChevronRight, RefreshCw } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
@@ -169,77 +169,34 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
         </div>
       </div>
 
-      {/* Quick Tools */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ fontSize: '1rem' }}>Quick Tools</div>
-        <div className="grid-2">
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('commute')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(0,212,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Navigation size={18} color="var(--accent)" />
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Commute Finder</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>AI picks your best bike</div>
-              </div>
-            </div>
+      {/* BikeIQ+ Banner */}
+      <div
+        onClick={() => navigate('bikeiqplus')}
+        style={{
+          marginBottom: 20, cursor: 'pointer',
+          background: 'linear-gradient(135deg, rgba(179,136,255,0.12) 0%, rgba(0,212,255,0.06) 100%)',
+          border: '1px solid rgba(179,136,255,0.25)',
+          borderRadius: 18, padding: '18px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'relative', overflow: 'hidden'
+        }}
+      >
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'radial-gradient(circle, rgba(179,136,255,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: '1.3rem' }}>✨</span>
+            <span style={{ fontFamily: 'Rajdhani', fontWeight: 800, fontSize: '1.2rem', color: 'var(--purple)' }}>BikeIQ+ Tools</span>
           </div>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('quiz')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(179,136,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                🎯
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Bike Quiz</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>Find your perfect match</div>
-              </div>
-            </div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text2)', lineHeight: 1.4 }}>
+            Bike Quiz · Commute Finder · Insurance · Resale · Road Tax · AI Mechanic & more
           </div>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('firstbike')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(0,230,118,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                🌱
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>First Bike Finder</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>For students & beginners</div>
-              </div>
-            </div>
-          </div>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('insurance')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(0,230,118,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                🛡️
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Insurance Estimator</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>Calculate your premium</div>
-              </div>
-            </div>
-          </div>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('resale')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(179,136,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                📉
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Resale Predictor</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>Know your bike's worth</div>
-              </div>
-            </div>
-          </div>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('ownership')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 38, height: 38, background: 'rgba(255,107,53,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Calculator size={18} color="var(--accent3)" />
-              </div>
-              <div>
-                <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem' }}>Cost Calculator</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>True ownership cost</div>
-              </div>
-            </div>
+          <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['🎯 Quiz', '🔧 AI Mechanic', '🛡️ Insurance', '📉 Resale', '🌱 First Bike'].map(t => (
+              <span key={t} style={{ fontSize: '0.68rem', background: 'rgba(179,136,255,0.1)', color: 'var(--purple)', border: '1px solid rgba(179,136,255,0.2)', borderRadius: 20, padding: '2px 8px' }}>{t}</span>
+            ))}
           </div>
         </div>
+        <div style={{ color: 'var(--purple)', fontSize: '1.2rem', flexShrink: 0, marginLeft: 12 }}>→</div>
       </div>
 
       {/* Browse Bikes - Trending/Popular/Electric/Upcoming */}

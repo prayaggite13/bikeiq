@@ -1,15 +1,12 @@
 import React from 'react';
-import { Home, Search, GitCompare, Heart, Newspaper, Bot, HelpCircle } from 'lucide-react';
+import { Home, GitCompare, Newspaper, Bot, Heart, Sparkles } from 'lucide-react';
 
 const navItems = [
   { id: 'home', icon: Home, label: 'Home' },
-  { id: 'search', icon: Search, label: 'Search' },
   { id: 'compare', icon: GitCompare, label: 'Compare' },
-  { id: 'quiz', icon: HelpCircle, label: 'Quiz' },
-  { id: 'roadtax', label: 'Road Tax', icon: '🛣️' },
   { id: 'news', icon: Newspaper, label: 'News' },
   { id: 'ai', icon: Bot, label: 'AI' },
-  { id: 'bikeiqplus', label: 'BikeIQ+', icon: '⚡' },
+  { id: 'bikeiqplus', icon: Sparkles, label: 'BikeIQ+' },
   { id: 'watchlist', icon: Heart, label: 'Saved' },
 ];
 
