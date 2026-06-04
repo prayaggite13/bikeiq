@@ -6,7 +6,6 @@ const navItems = [
   { id: 'search', icon: Search, label: 'Search' },
   { id: 'compare', icon: GitCompare, label: 'Compare' },
   { id: 'quiz', icon: HelpCircle, label: 'Quiz' },
-  { id: 'roadtax', label: 'Road Tax', label: 'Tax' }
   { id: 'news', icon: Newspaper, label: 'News' },
   { id: 'ai', icon: Bot, label: 'AI' },
   { id: 'watchlist', icon: Heart, label: 'Saved' },
