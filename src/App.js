@@ -14,6 +14,7 @@ import BikeQuizPage from './pages/BikeQuizPage';
 import ResalePage from './pages/ResalePage';
 import FirstBikePage from './pages/FirstBikePage';
 import InsurancePage from './pages/InsurancePage';
+import RoadTaxPage from './pages/RoadTaxPage';
 import './App.css';
 
 export default function App() {
@@ -70,6 +71,7 @@ export default function App() {
         {page === 'resale' && <ResalePage {...props} />}
         {page === 'firstbike' && <FirstBikePage {...props} />}
         {page === 'insurance' && <InsurancePage {...props} />}
+        {page === 'roadtax' && <RoadTaxPage {...props} />}
       </main>
       <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
     </div>
