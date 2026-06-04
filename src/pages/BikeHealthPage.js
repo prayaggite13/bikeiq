@@ -1,44 +1,14 @@
 import React, { useState } from 'react';
-
-const GROQ_KEY = process.env.REACT_APP_GROQ_API_KEY;
+import { groqJSON } from '../utils/groq';
 
 const SYMPTOMS = [
   'Loud accident impact', 'Frame damage visible', 'Continuous vibration',
   'Grinding noise from brakes', 'Engine knocking', 'Smoke from engine',
-  'Oil leak', 'Coolant leak', 'Suspension bottoming out', 'Wheel wobble',
+  'Oil leak', 'Suspension bottoming out', 'Wheel wobble', 'Coolant leak',
 ];
 
-async function analyzeHealth(description) {
-  const prompt = `You are a senior motorcycle health diagnostic expert in India.
-A user describes this bike damage/issue: "${description}"
-
-Respond ONLY in this JSON format (no markdown):
-{
-  "condition": "Critical | Poor | Fair | Good",
-  "immediate_service": true or false,
-  "safety_to_ride": "Safe | Ride with Caution | Do NOT Ride",
-  "diagnosis": "2-3 sentence summary of what is likely wrong",
-  "affected_systems": ["system 1", "system 2"],
-  "recommended_repairs": ["repair 1", "repair 2", "repair 3"],
-  "estimated_repair_cost": "₹X,XXX – ₹X,XXX",
-  "estimated_time": "X–Y hours / days",
-  "insurance_claimable": true or false,
-  "insurance_tip": "one sentence insurance advice",
-  "warning": "most important warning to the user"
-}`;
-
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GROQ_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-  });
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
-}
-
-const COND_COLOR = { Critical: '#ff3b3b', Poor: '#ff6b35', Fair: '#fbbf24', Good: '#00ff88' };
-const RIDE_COLOR = { Safe: '#00ff88', 'Ride with Caution': '#fbbf24', 'Do NOT Ride': '#ff3b3b' };
+const COND_COLOR = { Critical: '#ff5252', Poor: '#ff6b35', Fair: '#ffd740', Good: '#00e676' };
+const RIDE_COLOR = { Safe: '#00e676', 'Ride with Caution': '#ffd740', 'Do NOT Ride': '#ff5252' };
 
 export default function BikeHealthPage({ navigate }) {
   const [input, setInput] = useState('');
@@ -49,31 +19,52 @@ export default function BikeHealthPage({ navigate }) {
   const analyze = async () => {
     if (!input.trim()) return;
     setLoading(true); setError(''); setResult(null);
-    try { setResult(await analyzeHealth(input)); }
-    catch { setError('Analysis failed. Please try again.'); }
+    try {
+      const data = await groqJSON(
+        'You are a senior motorcycle health diagnostic expert in India. Respond only with valid JSON.',
+        `A user describes this bike damage/issue: "${input}"
+
+Return this exact JSON:
+{
+  "condition": "Fair",
+  "immediate_service": false,
+  "safety_to_ride": "Ride with Caution",
+  "diagnosis": "2-3 sentence summary of what is likely wrong",
+  "affected_systems": ["system 1", "system 2"],
+  "recommended_repairs": ["repair 1", "repair 2"],
+  "estimated_repair_cost": "₹2,000 – ₹8,000",
+  "estimated_time": "2–4 hours",
+  "insurance_claimable": false,
+  "insurance_tip": "one sentence insurance advice",
+  "warning": "most important warning to the user"
+}`
+      );
+      setResult(data);
+    } catch (e) {
+      setError('Analysis failed. Check your Groq API key or try again.');
+    }
     setLoading(false);
   };
 
   const s = {
-    page: { minHeight: '100vh', background: '#0a0a0a', color: '#e0e0e0', paddingBottom: 100 },
-    header: { padding: '20px 16px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 12 },
+    page: { minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', paddingBottom: 100 },
+    header: { padding: '20px 16px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 },
     back: { fontSize: 20, cursor: 'pointer', color: '#ff6b35', background: 'none', border: 'none' },
-    title: { fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 },
-    sub: { fontSize: 12, color: '#666', margin: 0 },
     container: { padding: 16 },
-    card: { background: '#111', border: '1px solid #1e1e1e', borderRadius: 16, padding: 18, marginBottom: 14 },
-    label: { fontSize: 11, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8, display: 'block' },
-    textarea: { width: '100%', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 10, color: '#e0e0e0', fontSize: 14, padding: '12px 14px', outline: 'none', resize: 'vertical', minHeight: 90, boxSizing: 'border-box', fontFamily: 'inherit' },
+    card: { background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 16, padding: 18, marginBottom: 14 },
+    label: { fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8, display: 'block' },
+    textarea: { width: '100%', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: 14, padding: '12px 14px', outline: 'none', resize: 'vertical', minHeight: 90, boxSizing: 'border-box', fontFamily: 'inherit' },
     quickWrap: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-    chip: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 20, padding: '6px 12px', fontSize: 12, color: '#aaa', cursor: 'pointer' },
-    btn: { width: '100%', padding: 14, background: 'linear-gradient(135deg, #ff6b35, #cc4400)', color: '#fff', fontWeight: 700, fontSize: 15, borderRadius: 12, border: 'none', cursor: 'pointer' },
-    badge: (val, colorMap) => ({ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: `${colorMap[val]}22`, color: colorMap[val], fontWeight: 700, fontSize: 12, border: `1px solid ${colorMap[val]}44` }),
-    row: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #1a1a1a', fontSize: 13 },
-    bullet: { display: 'flex', gap: 8, marginBottom: 6, fontSize: 13, color: '#ccc', alignItems: 'flex-start' },
+    chip: { background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '6px 12px', fontSize: 12, color: 'var(--text2)', cursor: 'pointer' },
+    btn: { width: '100%', padding: 14, background: 'linear-gradient(135deg, #ff6b35, #cc4400)', color: '#fff', fontWeight: 700, fontSize: 15, borderRadius: 12, border: 'none', cursor: 'pointer', marginTop: 12 },
+    badge: (val, map) => ({ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: `${map[val] || '#ffd740'}22`, color: map[val] || '#ffd740', fontWeight: 700, fontSize: 12, border: `1px solid ${map[val] || '#ffd740'}44` }),
+    row: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border)', fontSize: 13 },
+    bullet: { display: 'flex', gap: 8, marginBottom: 6, fontSize: 13, color: 'var(--text2)', alignItems: 'flex-start' },
     dot: (c) => ({ width: 6, height: 6, borderRadius: '50%', background: c || '#ff6b35', marginTop: 5, flexShrink: 0 }),
-    warnBox: { background: '#ff3b3b11', border: '1px solid #ff3b3b33', borderRadius: 10, padding: 12, fontSize: 13, color: '#ff6b6b' },
-    infoBox: { background: '#a855f711', border: '1px solid #a855f733', borderRadius: 10, padding: 12, fontSize: 13, color: '#a855f7' },
-    errorBox: { background: '#ff3b3b11', border: '1px solid #ff3b3b33', borderRadius: 10, padding: 12, fontSize: 13, color: '#ff6b6b', marginTop: 8 },
+    sectionTitle: { fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 },
+    warnBox: { background: 'rgba(255,82,82,0.08)', border: '1px solid rgba(255,82,82,0.2)', borderRadius: 10, padding: 12, fontSize: 13, color: 'var(--red)', marginBottom: 12 },
+    infoBox: { background: 'rgba(179,136,255,0.08)', border: '1px solid rgba(179,136,255,0.2)', borderRadius: 10, padding: 12, fontSize: 13, color: 'var(--purple)' },
+    errorBox: { background: 'rgba(255,82,82,0.08)', border: '1px solid rgba(255,82,82,0.2)', borderRadius: 10, padding: 12, fontSize: 13, color: 'var(--red)', marginTop: 8 },
   };
 
   return (
@@ -81,31 +72,29 @@ export default function BikeHealthPage({ navigate }) {
       <div style={s.header}>
         <button style={s.back} onClick={() => navigate('bikeiqplus')}>←</button>
         <div>
-          <h1 style={s.title}>🩺 Bike Health Advisor</h1>
-          <p style={s.sub}>Damage, accident & performance issue analysis</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', margin: 0, fontFamily: 'Rajdhani,sans-serif' }}>🩺 Bike Health Advisor</h1>
+          <p style={{ fontSize: 12, color: 'var(--text3)', margin: 0 }}>Damage, accident & performance issue analysis</p>
         </div>
       </div>
-
       <div style={s.container}>
         <div style={s.card}>
           <span style={s.label}>Common Symptoms</span>
           <div style={s.quickWrap}>
             {SYMPTOMS.map(q => (
-              <div key={q} style={s.chip} onClick={() => setInput(prev => prev ? prev + ', ' + q : q)}>{q}</div>
+              <div key={q} style={s.chip} onClick={() => setInput(p => p ? p + ', ' + q : q)}>{q}</div>
             ))}
           </div>
           <span style={s.label}>Describe the Damage / Issue</span>
-          <textarea style={s.textarea} placeholder="e.g. Had a minor accident yesterday, front forks feel stiff, bike pulls to the left when braking, vibration at 60 kmph..." value={input} onChange={e => setInput(e.target.value)} />
-          {error && <div style={s.errorBox}>{error}</div>}
-          <div style={{ height: 12 }} />
-          <button style={s.btn} onClick={analyze} disabled={loading || !input.trim()}>
+          <textarea style={s.textarea} placeholder="e.g. Had a minor accident, front forks feel stiff, bike pulls to the left when braking..." value={input} onChange={e => setInput(e.target.value)} />
+          {error && <div style={s.errorBox}>⚠️ {error}</div>}
+          <button style={{ ...s.btn, opacity: loading || !input.trim() ? 0.6 : 1 }} onClick={analyze} disabled={loading || !input.trim()}>
             {loading ? '🩺 Analyzing...' : '🩺 Analyze Bike Health'}
           </button>
         </div>
 
         {loading && (
           <div style={{ ...s.card, textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>🩺</div>
+            <div className="spinner" style={{ margin: '0 auto 12px' }} />
             <div style={{ color: '#ff6b35', fontWeight: 600 }}>Running health check...</div>
           </div>
         )}
@@ -113,43 +102,33 @@ export default function BikeHealthPage({ navigate }) {
         {result && (
           <>
             <div style={s.card}>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
                 <span style={s.badge(result.condition, COND_COLOR)}>{result.condition} Condition</span>
                 <span style={s.badge(result.safety_to_ride, RIDE_COLOR)}>{result.safety_to_ride}</span>
-                {result.immediate_service && <span style={{ ...s.badge('Critical', COND_COLOR), background: '#ff3b3b22' }}>⚠️ Immediate Service</span>}
+                {result.immediate_service && <span style={{ ...s.badge('Critical', COND_COLOR) }}>⚠️ Immediate Service</span>}
               </div>
-              <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>{result.diagnosis}</div>
+              <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{result.diagnosis}</div>
             </div>
-
-            {result.warning && (
-              <div style={s.warnBox}>⚠️ <strong>Warning:</strong> {result.warning}</div>
-            )}
-            <div style={{ height: 12 }} />
-
+            {result.warning && <div style={s.warnBox}>⚠️ <strong>Warning:</strong> {result.warning}</div>}
             <div style={s.card}>
-              <span style={s.label}>Affected Systems</span>
+              <span style={s.sectionTitle}>Affected Systems</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {result.affected_systems?.map((sys, i) => (
-                  <span key={i} style={{ background: '#ff6b3511', color: '#ff6b35', border: '1px solid #ff6b3533', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>{sys}</span>
+                  <span key={i} style={{ background: 'rgba(255,107,53,0.1)', color: '#ff6b35', border: '1px solid rgba(255,107,53,0.2)', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>{sys}</span>
                 ))}
               </div>
             </div>
-
             <div style={s.card}>
-              <span style={s.label}>Recommended Repairs</span>
+              <span style={s.sectionTitle}>Recommended Repairs</span>
               {result.recommended_repairs?.map((r, i) => (
-                <div key={i} style={s.bullet}><div style={s.dot('#ff6b35')} /><span>{r}</span></div>
+                <div key={i} style={s.bullet}><div style={s.dot()} /><span>{r}</span></div>
               ))}
             </div>
-
             <div style={s.card}>
-              <div style={s.row}><span style={{ color: '#888' }}>Estimated Cost</span><span style={{ color: '#ff6b35', fontWeight: 700 }}>{result.estimated_repair_cost}</span></div>
-              <div style={{ ...s.row, borderBottom: 'none' }}><span style={{ color: '#888' }}>Estimated Time</span><span style={{ color: '#e0e0e0' }}>{result.estimated_time}</span></div>
+              <div style={s.row}><span style={{ color: 'var(--text3)' }}>Estimated Cost</span><span style={{ color: '#ff6b35', fontWeight: 700 }}>{result.estimated_repair_cost}</span></div>
+              <div style={{ ...s.row, borderBottom: 'none' }}><span style={{ color: 'var(--text3)' }}>Estimated Time</span><span style={{ color: 'var(--text)' }}>{result.estimated_time}</span></div>
             </div>
-
-            {result.insurance_claimable && (
-              <div style={s.infoBox}>🛡️ <strong>Insurance Tip:</strong> {result.insurance_tip}</div>
-            )}
+            {result.insurance_claimable && <div style={s.infoBox}>🛡️ <strong>Insurance Tip:</strong> {result.insurance_tip}</div>}
           </>
         )}
       </div>
