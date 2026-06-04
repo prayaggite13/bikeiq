@@ -58,7 +58,7 @@ const ALL_BIKES = [
 
   // Suzuki — current & old
   'Suzuki Gixxer SF', 'Suzuki Gixxer SF 250', 'Suzuki Gixxer 250', 'Suzuki Gixxer',
-  'Suzuki Access 125', 'Suzuki Burgman Street', 'Suzuki Let's', 'Suzuki Swish 125',
+  'Suzuki Access 125', 'Suzuki Burgman Street', 'Suzuki Lets', 'Suzuki Swish 125',
   'Suzuki Hayate', 'Suzuki Slingshot Plus', 'Suzuki GS150R', 'Suzuki Inazuma',
 
   // KTM — current & old
