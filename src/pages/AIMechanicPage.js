@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/gemini';
+import { askGemini } from '../utils/gemini';
 
 const QUICK_ISSUES = [
   'Engine not starting', 'Unusual knocking sound', 'Excessive vibration',
@@ -19,9 +19,10 @@ export default function AIMechanicPage({ navigate }) {
     if (!input.trim()) return;
     setLoading(true); setError(''); setResult(null);
     try {
-      const data = await groqJSON(
-        'You are an expert Indian motorcycle mechanic with 20+ years of experience. Always respond with valid JSON only.',
-        `A user describes this bike problem: "${input}"
+      const systemPrompt =
+  'You are an expert Indian motorcycle mechanic with 20+ years of experience. Always respond with valid JSON only.';
+
+const prompt = `A user describes this bike problem: "${input}"
 
 Return this exact JSON structure:
 {
@@ -34,9 +35,18 @@ Return this exact JSON structure:
   "estimated_cost": "₹500 – ₹2,000",
   "urgent_action": "None",
   "tip": "one expert tip"
-}`
-      );
-      setResult(data);
+}`;
+
+const response = await askGemini(prompt, systemPrompt);
+
+const clean = response
+  .replace(/```json/g, '')
+  .replace(/```/g, '')
+  .trim();
+
+const data = JSON.parse(clean);
+
+setResult(data);
     } catch (e) {
       setError('Diagnosis failed. Check your Groq API key or try again.');
     }

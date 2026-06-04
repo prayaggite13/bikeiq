@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/gemini';
+import { askGemini } from '../utils/gemini';
 
 const SYMPTOMS = [
   'Loud accident impact', 'Frame damage visible', 'Continuous vibration',
@@ -17,14 +17,20 @@ export default function BikeHealthPage({ navigate }) {
   const [error, setError] = useState('');
 
   const analyze = async () => {
-    if (!input.trim()) return;
-    setLoading(true); setError(''); setResult(null);
-    try {
-      const data = await groqJSON(
-        'You are a senior motorcycle health diagnostic expert in India. Respond only with valid JSON.',
-        `A user describes this bike damage/issue: "${input}"
+  if (!input.trim()) return;
+
+  setLoading(true);
+  setError('');
+  setResult(null);
+
+  try {
+    const systemPrompt =
+      'You are a senior motorcycle health diagnostic expert in India. Respond only with valid JSON. No markdown or explanations.';
+
+    const prompt = `A user describes this bike damage/issue: "${input}"
 
 Return this exact JSON:
+
 {
   "condition": "Fair",
   "immediate_service": false,
@@ -37,14 +43,25 @@ Return this exact JSON:
   "insurance_claimable": false,
   "insurance_tip": "one sentence insurance advice",
   "warning": "most important warning to the user"
-}`
-      );
-      setResult(data);
-    } catch (e) {
-      setError('Analysis failed. Check your Groq API key or try again.');
-    }
-    setLoading(false);
-  };
+}`;
+
+    const response = await askGemini(prompt, systemPrompt);
+
+    const clean = response
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    const data = JSON.parse(clean);
+
+    setResult(data);
+  } catch (err) {
+    console.error(err);
+    setError('Analysis failed. Please try again.');
+  }
+
+  setLoading(false);
+};
 
   const s = {
     page: { minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', paddingBottom: 100 },

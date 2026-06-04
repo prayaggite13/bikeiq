@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/gemini';
+import { askGemini } from '../utils/gemini';
 
 const CONDITIONS = [
   { id: 'excellent', label: 'Excellent', desc: 'Like new, no scratches', color: 'var(--green)' },
@@ -22,12 +22,17 @@ export default function UsedPricePage({ navigate }) {
   const [error, setError] = useState('');
 
   const check = async () => {
-    if (!bikeModel.trim() || !year || !km || !condition) return;
-    setLoading(true); setError(''); setResult(null);
-    try {
-      const data = await groqJSON(
-        'You are an expert used bike valuation specialist for the Indian two-wheeler market. Respond only with valid JSON.',
-        `Bike: ${bikeModel}, Year: ${year}, Kilometers: ${km} km, Condition: ${condition}, City: ${city || 'India'}
+  if (!bikeModel.trim() || !year || !km || !condition) return;
+
+  setLoading(true);
+  setError('');
+  setResult(null);
+
+  try {
+    const systemPrompt =
+      'You are an expert used bike valuation specialist for the Indian two-wheeler market. Respond only with valid JSON. No markdown or explanations.';
+
+    const prompt = `Bike: ${bikeModel}, Year: ${year}, Kilometers: ${km} km, Condition: ${condition}, City: ${city || 'India'}
 
 Return this exact JSON:
 {
@@ -44,14 +49,34 @@ Return this exact JSON:
   "red_flags_for_buyer": ["flag 1", "flag 2"],
   "service_history_value": "How much service history adds to value",
   "summary": "2-sentence market summary for this bike"
-}`
-      );
-      setResult(data);
-    } catch (e) {
-      setError('Valuation failed. Check your Groq API key or try again.');
+}`;
+
+    const response = await askGemini(prompt, systemPrompt);
+
+    const clean = response
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    let data;
+
+    try {
+      data = JSON.parse(clean);
+    } catch (parseError) {
+      console.error(parseError);
+      setError('AI returned invalid data. Please try again.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  };
+
+    setResult(data);
+  } catch (err) {
+    console.error(err);
+    setError('Valuation failed. Please try again.');
+  }
+
+  setLoading(false);
+};
 
   const demandColor = { High: 'var(--green)', Medium: 'var(--yellow)', Low: 'var(--accent3)' };
 

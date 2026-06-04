@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/gemini';
+import { askGemini } from '../utils/gemini';
 
 const BRANDS = ['Hero', 'Honda', 'Bajaj', 'TVS', 'Royal Enfield', 'Yamaha', 'Suzuki', 'KTM', 'Ola Electric', 'Ather', 'Revolt'];
 
@@ -12,12 +12,17 @@ export default function ServiceCenterPage({ navigate }) {
   const [locating, setLocating] = useState(false);
 
   const search = async () => {
-    if (!city.trim()) return;
-    setLoading(true); setError(''); setResult(null);
-    try {
-      const data = await groqJSON(
-        'You are a helpful assistant for Indian bike service centers. Respond only with valid JSON.',
-        `List 5 authorized service centers for ${brand || 'all major brands'} near ${city}, India.
+  if (!city.trim()) return;
+
+  setLoading(true);
+  setError('');
+  setResult(null);
+
+  try {
+    const systemPrompt =
+      'You are a helpful assistant for Indian bike service centers. Respond only with valid JSON. No markdown or explanations.';
+
+    const prompt = `List 5 authorized service centers for ${brand || 'all major brands'} near ${city}, India.
 
 Return this exact JSON:
 {
@@ -36,14 +41,34 @@ Return this exact JSON:
   "tip": "one useful tip for visiting service centers in this city"
 }
 
-Use realistic Indian service center names and addresses for ${city}.`
-      );
-      setResult(data);
-    } catch (e) {
-      setError('Search failed. Check your Groq API key or try again.');
+Use realistic Indian service center names and addresses for ${city}.`;
+
+    const response = await askGemini(prompt, systemPrompt);
+
+    const clean = response
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    let data;
+
+    try {
+      data = JSON.parse(clean);
+    } catch (parseError) {
+      console.error(parseError);
+      setError('AI returned invalid data. Please try again.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  };
+
+    setResult(data);
+  } catch (err) {
+    console.error(err);
+    setError('Search failed. Please try again.');
+  }
+
+  setLoading(false);
+};
 
   const useGPS = () => {
     setLocating(true);

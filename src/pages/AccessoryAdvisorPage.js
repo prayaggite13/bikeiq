@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groqJSON } from '../utils/gemini';
+import { askGemini } from '../utils/gemini';
 
 const USAGE_TYPES = ['Daily Commute', 'Long Distance Touring', 'Weekend Rides', 'Off-Roading', 'Track / Sport', 'Delivery / Commercial'];
 const BUDGETS = ['Under ₹5,000', '₹5,000 – ₹15,000', '₹15,000 – ₹30,000', '₹30,000+'];
@@ -12,15 +12,24 @@ export default function AccessoryAdvisorPage({ navigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const getAdvice = async () => {
-    if (!bikeModel.trim() || !usage) return;
-    setLoading(true); setError(''); setResult(null);
-    try {
-      const data = await groqJSON(
-        'You are an expert motorcycle accessories advisor for Indian riders. Respond only with valid JSON.',
-        `Bike: ${bikeModel}, Usage: ${usage}, Budget: ${budget || 'any budget'}
+ const getAdvice = async () => {
+  if (!bikeModel.trim() || !usage) return;
+
+  setLoading(true);
+  setError('');
+  setResult(null);
+
+  try {
+    const systemPrompt =
+      'You are an expert motorcycle accessories advisor for Indian riders. Respond ONLY with valid JSON. No markdown or explanations.';
+
+    const prompt = `
+Bike: ${bikeModel}
+Usage: ${usage}
+Budget: ${budget || 'any budget'}
 
 Return this exact JSON:
+
 {
   "helmet": {
     "recommendation": "Specific helmet model and brand",
@@ -29,30 +38,60 @@ Return this exact JSON:
     "safety_rating": "ISI / DOT / ECE"
   },
   "riding_gear": [
-    { "item": "item name", "brand": "brand name", "price": "₹X,XXX", "tip": "short tip" }
+    {
+      "item": "item name",
+      "brand": "brand name",
+      "price": "₹X,XXX",
+      "tip": "short tip"
+    }
   ],
   "bike_protection": [
-    { "item": "item name", "price": "₹X,XXX", "benefit": "benefit" }
+    {
+      "item": "item name",
+      "price": "₹X,XXX",
+      "benefit": "benefit"
+    }
   ],
   "luggage": [
-    { "item": "item name", "price": "₹X,XXX", "capacity": "size or litres" }
+    {
+      "item": "item name",
+      "price": "₹X,XXX",
+      "capacity": "size or litres"
+    }
   ],
   "electronics": [
-    { "item": "item name", "price": "₹X,XXX", "feature": "key feature" }
+    {
+      "item": "item name",
+      "price": "₹X,XXX",
+      "feature": "key feature"
+    }
   ],
   "total_budget_estimate": "₹X,XXX – ₹X,XXX",
   "priority_buy": "The single most important accessory to buy first",
   "tip": "one expert tip for this bike and usage combination"
 }
 
-Focus on accessories available in India, practical for ${usage}.`
-      );
-      setResult(data);
-    } catch (e) {
-      setError('Could not fetch recommendations. Check your Groq API key or try again.');
-    }
-    setLoading(false);
-  };
+Focus on accessories available in India and practical for ${usage}.
+`;
+
+    const response = await askGemini(prompt, systemPrompt);
+
+    const clean = response
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    const data = JSON.parse(clean);
+
+    setResult(data);
+  } catch (err) {
+    console.error(err);
+    setError('Could not fetch recommendations. Please try again.');
+  }
+
+  setLoading(false);
+};
+
 
   const s = {
     page: { minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', paddingBottom: 100 },
