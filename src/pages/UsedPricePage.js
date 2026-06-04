@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+const GROQ_KEY = process.env.REACT_APP_GROQ_API_KEY;
 
 const CONDITIONS = [
   { id: 'excellent', label: 'Excellent', desc: 'Like new, no scratches', color: '#00ff88' },
@@ -37,7 +37,7 @@ Provide used bike valuation in this exact JSON format (no markdown):
   "summary": "2-sentence market summary for this bike"
 }`;
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GROQ_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),

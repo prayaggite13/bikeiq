@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+const GROQ_KEY = process.env.REACT_APP_GROQ_API_KEY;
 
 const BRANDS = ['Hero', 'Honda', 'Bajaj', 'TVS', 'Royal Enfield', 'Yamaha', 'Suzuki', 'KTM', 'Ola Electric', 'Ather', 'Revolt'];
 
@@ -27,7 +27,7 @@ Respond ONLY in this JSON format (no markdown):
 
 Use realistic Indian service center names, addresses and phone numbers for ${city}.`;
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GROQ_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
