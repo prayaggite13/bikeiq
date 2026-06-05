@@ -86,7 +86,7 @@ export default function NewsPage() {
   const load = useCallback(async (idx) => {
     setLoading(true);
     setArticles([]);
-    const { articles: fetched, isLive: live } = await fetchNewsData(FILTERS[idx].keywords, 12);
+    const { articles: fetched } = await fetchNewsData(FILTERS[idx].keywords, 12);
     if (fetched && fetched.length > 0) {
       setArticles(fetched);
       setIsLive(true);
