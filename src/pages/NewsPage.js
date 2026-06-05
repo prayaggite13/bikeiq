@@ -15,8 +15,6 @@ const FILTERS = [
   { label: '🟠 KTM Bajaj',    topic: 'KTM and Bajaj motorcycle news India 2025' },
 ];
 
-const SOURCES = ['BikeDekho', 'BikeWale', 'ZigWheels', 'Overdrive', 'AutocarIndia', 'BikeIQ Digest'];
-
 async function fetchAINews(topic) {
   const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
   const prompt = `You are a motorcycle news editor for India. Generate 8 realistic, current news articles about: ${topic}
