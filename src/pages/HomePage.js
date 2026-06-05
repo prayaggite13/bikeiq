@@ -218,26 +218,35 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
   return (
     <div className="page slide-up">
 
-      {/* Hero */}
+      {/* ── Hero Section ── */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(255,107,53,0.05) 100%)',
-        border: '1px solid var(--border)', borderRadius: 20, padding: '28px 20px',
-        marginBottom: 20, position: 'relative', overflow: 'hidden'
+        background: 'linear-gradient(160deg, rgba(0,212,255,0.09) 0%, rgba(179,136,255,0.06) 50%, rgba(255,107,53,0.05) 100%)',
+        border: '1px solid var(--border)',
+        borderRadius: 24, padding: '32px 20px 28px',
+        marginBottom: 20, position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', top: -30, right: -30, width: 150, height: 150, background: 'radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Zap size={14} color="var(--accent)" />
-          <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            India's Smartest 2-Wheeler Platform
-          </span>
+        {/* Background glows */}
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(0,212,255,0.10) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -30, left: -30, width: 140, height: 140, background: 'radial-gradient(circle, rgba(179,136,255,0.08) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+        {/* Badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)', borderRadius: 20, padding: '4px 12px', marginBottom: 14 }}>
+          <Zap size={11} color="var(--accent)" fill="var(--accent)" />
+          <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>India's Smartest 2-Wheeler Platform</span>
         </div>
-        <h1 style={{ fontFamily: 'Rajdhani', fontSize: '2rem', fontWeight: 700, lineHeight: 1.1, marginBottom: 6 }}>
-          Find Your<br /><span style={{ color: 'var(--accent)' }}>Perfect Ride</span>
+
+        {/* Headline */}
+        <h1 style={{ fontFamily: 'Rajdhani', fontSize: '2.2rem', fontWeight: 800, lineHeight: 1.1, marginBottom: 10 }}>
+          Find, Compare &<br /><span style={{ color: 'var(--accent)' }}>Buy Your Perfect Ride</span>
         </h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text2)', marginBottom: 20, lineHeight: 1.5 }}>
-          Every bike. Every scooter. EV to petrol. Real specs, real prices across India.
+
+        {/* Subheading */}
+        <p style={{ fontSize: '0.88rem', color: 'var(--text2)', marginBottom: 20, lineHeight: 1.6, maxWidth: 420 }}>
+          BikeIQ covers every bike and scooter sold in India — real specs, on-road prices city-by-city, AI-powered comparisons, and tools to help you decide with confidence.
         </p>
-        <div className="search-bar">
+
+        {/* Search */}
+        <div className="search-bar" style={{ marginBottom: 20 }}>
           <Search size={18} color="var(--text3)" />
           <input
             placeholder="Search any bike or scooter..."
@@ -246,8 +255,46 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
             onKeyDown={e => e.key === 'Enter' && handleSearch(query)}
           />
           <button className="btn btn-primary btn-sm" onClick={() => handleSearch(query)} style={{ padding: '7px 16px' }}>
-            Search
+            Go
           </button>
+        </div>
+
+        {/* Feature pills */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
+          {[
+            { icon: '🔍', label: 'Search 500+ bikes' },
+            { icon: '⚖️', label: 'Compare up to 3' },
+            { icon: '⚡', label: 'EV range & costs' },
+            { icon: '🤖', label: 'AI insights' },
+            { icon: '📰', label: 'Live news' },
+            { icon: '💰', label: 'On-road prices' },
+          ].map(f => (
+            <div key={f.label} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 20, padding: '5px 10px',
+              fontSize: '0.72rem', color: 'var(--text2)', fontWeight: 500,
+            }}>
+              <span style={{ fontSize: '0.82rem' }}>{f.icon}</span> {f.label}
+            </div>
+          ))}
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {[
+            { value: '500+', label: 'Bikes Listed' },
+            { value: '16',   label: 'Brands' },
+            { value: '8',    label: 'Cities Priced' },
+          ].map(stat => (
+            <div key={stat.label} style={{
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 12, padding: '10px 8px', textAlign: 'center',
+            }}>
+              <div style={{ fontFamily: 'Rajdhani', fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>{stat.value}</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text3)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
