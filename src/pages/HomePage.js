@@ -11,36 +11,38 @@ const POPULAR_SEARCHES = [
   'Simple One', 'Jawa 42', 'BMW G 310 R'
 ];
 
+// Brandfetch free CDN — logo by domain, no API key needed
+// Format: https://cdn.brandfetch.io/{domain}/icon.png
 const BRANDS = [
-  { name: 'Hero',            logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Hero_MotoCorp_Logo.svg/120px-Hero_MotoCorp_Logo.svg.png',          bg: '#1565C0' },
-  { name: 'Honda',           logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Honda.svg/120px-Honda.svg.png',                                     bg: '#CC0000' },
-  { name: 'TVS',             logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/TVS_Motor_Company_Logo.svg/120px-TVS_Motor_Company_Logo.svg.png',   bg: '#F9A825' },
-  { name: 'Bajaj',           logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Bajaj_Auto_Logo.svg/120px-Bajaj_Auto_Logo.svg.png',                 bg: '#E65100' },
-  { name: 'Royal Enfield',   logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Royal_Enfield_logo.svg/120px-Royal_Enfield_logo.svg.png',           bg: '#3a3a3a' },
-  { name: 'Yamaha',          logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Yamaha_Motor_logo.svg/120px-Yamaha_Motor_logo.svg.png',             bg: '#1565C0' },
-  { name: 'Suzuki',          logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Suzuki_logo_2.svg/120px-Suzuki_logo_2.svg.png',                    bg: '#1565C0' },
-  { name: 'KTM',             logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/KTM-Logo.svg/120px-KTM-Logo.svg.png',                              bg: '#E65100' },
-  { name: 'Ola Electric',    logo: null,                                                                                                                           bg: '#1B5E20' },
-  { name: 'Ather',           logo: null,                                                                                                                           bg: '#1B5E20' },
-  { name: 'Simple Energy',   logo: null,                                                                                                                           bg: '#1B5E20' },
-  { name: 'Revolt',          logo: null,                                                                                                                           bg: '#1B5E20' },
-  { name: 'BMW',             logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/120px-BMW.svg.png',                                         bg: '#1565C0' },
-  { name: 'Kawasaki',        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Kawasaki_motorcycles_logo.svg/120px-Kawasaki_motorcycles_logo.svg.png', bg: '#1B5E20' },
-  { name: 'Triumph',         logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Triumph_Motorcycles_logo.svg/120px-Triumph_Motorcycles_logo.svg.png',   bg: '#cc0000' },
-  { name: 'Harley-Davidson', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Harley-Davidson_logo.svg/120px-Harley-Davidson_logo.svg.png',       bg: '#E65100' },
+  { name: 'Hero',            logo: 'https://cdn.brandfetch.io/heromotocorp.com/icon.png',        bg: '#1565C0' },
+  { name: 'Honda',           logo: 'https://cdn.brandfetch.io/honda.com/icon.png',               bg: '#CC0000' },
+  { name: 'TVS',             logo: 'https://cdn.brandfetch.io/tvsmotor.com/icon.png',            bg: '#e65c00' },
+  { name: 'Bajaj',           logo: 'https://cdn.brandfetch.io/bajajauto.com/icon.png',           bg: '#1565C0' },
+  { name: 'Royal Enfield',   logo: 'https://cdn.brandfetch.io/royalenfield.com/icon.png',        bg: '#3a3a3a' },
+  { name: 'Yamaha',          logo: 'https://cdn.brandfetch.io/yamaha-motor.com/icon.png',        bg: '#1565C0' },
+  { name: 'Suzuki',          logo: 'https://cdn.brandfetch.io/suzuki.com/icon.png',              bg: '#1a1a1a' },
+  { name: 'KTM',             logo: 'https://cdn.brandfetch.io/ktm.com/icon.png',                 bg: '#E65100' },
+  { name: 'Ola Electric',    logo: 'https://cdn.brandfetch.io/olaelectric.com/icon.png',         bg: '#1B5E20' },
+  { name: 'Ather',           logo: 'https://cdn.brandfetch.io/atherenergy.com/icon.png',         bg: '#1B5E20' },
+  { name: 'Simple Energy',   logo: 'https://cdn.brandfetch.io/simpleenergy.in/icon.png',         bg: '#1B5E20' },
+  { name: 'Revolt',          logo: 'https://cdn.brandfetch.io/revoltmotors.com/icon.png',        bg: '#1B5E20' },
+  { name: 'BMW',             logo: 'https://cdn.brandfetch.io/bmw.com/icon.png',                 bg: '#1565C0' },
+  { name: 'Kawasaki',        logo: 'https://cdn.brandfetch.io/kawasaki.com/icon.png',            bg: '#1B5E20' },
+  { name: 'Triumph',         logo: 'https://cdn.brandfetch.io/triumphmotorcycles.com/icon.png',  bg: '#cc0000' },
+  { name: 'Harley-Davidson', logo: 'https://cdn.brandfetch.io/harley-davidson.com/icon.png',     bg: '#E65100' },
 ];
 
-// Real bike images from Wikipedia Commons
+// Bike images — using imgd.aeplcdn.com (BikeWale/CarDekho CDN, no hotlink block)
 const BIKE_IMAGES = {
-  'Honda Activa 6G':             'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Honda_Activa_6G_%28India%2C_2019%29.jpg/320px-Honda_Activa_6G_%28India%2C_2019%29.jpg',
-  'Royal Enfield Classic 350':   'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Royal_Enfield_Classic_350_Black.jpg/320px-Royal_Enfield_Classic_350_Black.jpg',
-  'Ola S1 Pro':                  'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Ola_S1_Pro_Electric_Scooter.jpg/320px-Ola_S1_Pro_Electric_Scooter.jpg',
-  'Bajaj Pulsar NS200':          'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Bajaj_Pulsar_NS200.jpg/320px-Bajaj_Pulsar_NS200.jpg',
-  'Ather 450X':                  'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ather_450X_Gen_3.jpg/320px-Ather_450X_Gen_3.jpg',
-  'KTM Duke 390':                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/2023_KTM_390_Duke.jpg/320px-2023_KTM_390_Duke.jpg',
-  'Hero Splendor Plus':          'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Hero_Splendor_Plus_i3S.jpg/320px-Hero_Splendor_Plus_i3S.jpg',
-  'Yamaha R15 V4':               'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Yamaha_YZF-R15_V4.jpg/320px-Yamaha_YZF-R15_V4.jpg',
-  'TVS Apache RTR 160':          'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/TVS_Apache_RTR_160_4V.jpg/320px-TVS_Apache_RTR_160_4V.jpg',
+  'Honda Activa 6G':           'https://imgd.aeplcdn.com/664x374/n/cw/ec/44686/activa-6g-right-side-view-2.jpeg',
+  'Royal Enfield Classic 350': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/150577/classic-350-right-side-view-3.jpeg',
+  'Ola S1 Pro':                'https://imgd.aeplcdn.com/664x374/n/cw/ec/130591/s1-pro-right-side-view-2.jpeg',
+  'Bajaj Pulsar NS200':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/150987/ns200-right-side-view-2.jpeg',
+  'Ather 450X':                'https://imgd.aeplcdn.com/664x374/n/cw/ec/130611/450x-right-side-view-3.jpeg',
+  'KTM Duke 390':              'https://imgd.aeplcdn.com/664x374/n/cw/ec/150177/390-duke-right-side-view-2.jpeg',
+  'Hero Splendor Plus':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/106257/splendor-plus-right-side-view-2.jpeg',
+  'Yamaha R15 V4':             'https://imgd.aeplcdn.com/664x374/n/cw/ec/130806/yzf-r15-v4-right-side-view-3.jpeg',
+  'TVS Apache RTR 160':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/130977/apache-rtr-160-4v-right-side-view-3.jpeg',
 };
 
 const TYPE_EMOJI = {
