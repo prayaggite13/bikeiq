@@ -32,17 +32,25 @@ const BRANDS = [
   { name: 'Harley-Davidson', logo: 'https://cdn.brandfetch.io/harley-davidson.com/icon.png',     bg: '#E65100' },
 ];
 
-// Bike images — using imgd.aeplcdn.com (BikeWale/CarDekho CDN, no hotlink block)
-const BIKE_IMAGES = {
-  'Honda Activa 6G':           'https://imgd.aeplcdn.com/664x374/n/cw/ec/44686/activa-6g-right-side-view-2.jpeg',
-  'Royal Enfield Classic 350': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/150577/classic-350-right-side-view-3.jpeg',
-  'Ola S1 Pro':                'https://imgd.aeplcdn.com/664x374/n/cw/ec/130591/s1-pro-right-side-view-2.jpeg',
-  'Bajaj Pulsar NS200':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/150987/ns200-right-side-view-2.jpeg',
-  'Ather 450X':                'https://imgd.aeplcdn.com/664x374/n/cw/ec/130611/450x-right-side-view-3.jpeg',
-  'KTM Duke 390':              'https://imgd.aeplcdn.com/664x374/n/cw/ec/150177/390-duke-right-side-view-2.jpeg',
-  'Hero Splendor Plus':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/106257/splendor-plus-right-side-view-2.jpeg',
-  'Yamaha R15 V4':             'https://imgd.aeplcdn.com/664x374/n/cw/ec/130806/yzf-r15-v4-right-side-view-3.jpeg',
-  'TVS Apache RTR 160':        'https://imgd.aeplcdn.com/664x374/n/cw/ec/130977/apache-rtr-160-4v-right-side-view-3.jpeg',
+// Brand gradient colors for bike cards (reliable, never fails)
+const BRAND_GRADIENTS = {
+  'Honda':         'linear-gradient(135deg, #cc000022 0%, #ff000011 100%)',
+  'Royal Enfield': 'linear-gradient(135deg, #3a3a3a44 0%, #6a6a6a22 100%)',
+  'Ola Electric':  'linear-gradient(135deg, #1B5E2044 0%, #00e67622 100%)',
+  'Bajaj':         'linear-gradient(135deg, #E6510022 0%, #ff6b3511 100%)',
+  'Ather':         'linear-gradient(135deg, #1B5E2044 0%, #00d4ff22 100%)',
+  'KTM':           'linear-gradient(135deg, #E6510044 0%, #ff6b3522 100%)',
+  'Hero':          'linear-gradient(135deg, #1565C044 0%, #00d4ff22 100%)',
+  'Yamaha':        'linear-gradient(135deg, #1565C044 0%, #0044aa22 100%)',
+  'TVS':           'linear-gradient(135deg, #e6510022 0%, #ffd74022 100%)',
+  'Suzuki':        'linear-gradient(135deg, #1a1a1a44 0%, #4a4a4a22 100%)',
+  'default':       'linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(255,107,53,0.05) 100%)',
+};
+
+// Large emoji per bike type for visual cards
+const TYPE_BIG_EMOJI = {
+  Scooter:   '🛵', Commuter:  '🏍️', Sport:     '🏎️',
+  Cruiser:   '🏍️', Adventure: '🏔️', Electric:  '⚡',
 };
 
 const TYPE_EMOJI = {
@@ -68,29 +76,33 @@ const FEATURED_BIKES = [
   'KTM Duke 390',
 ];
 
-// Brand logo with fallback to colored initial
+// Brand logo — Brandfetch CDN with styled initial fallback
 function BrandLogo({ brand }) {
   const [failed, setFailed] = useState(false);
-  const initial = brand.name[0].toUpperCase();
+  const initial = brand.name.slice(0, 2).toUpperCase();
 
   return (
     <div style={{
-      width: 44, height: 44, borderRadius: 12,
-      background: brand.bg,
+      width: 48, height: 48, borderRadius: 14,
+      background: failed || !brand.logo ? brand.bg : '#fff',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden', margin: '0 auto 6px',
+      overflow: 'hidden', margin: '0 auto 8px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      border: '1px solid rgba(255,255,255,0.08)',
     }}>
       {brand.logo && !failed ? (
         <img
           src={brand.logo}
           alt={brand.name}
-          style={{ width: '78%', height: '78%', objectFit: 'contain' }}
+          style={{ width: '76%', height: '76%', objectFit: 'contain' }}
           onError={() => setFailed(true)}
         />
       ) : (
         <span style={{
-          fontSize: 18, fontWeight: 800,
-          color: '#fff', fontFamily: 'Rajdhani, sans-serif',
+          fontSize: initial.length > 1 ? 14 : 20,
+          fontWeight: 800, color: '#fff',
+          fontFamily: 'Rajdhani, sans-serif',
+          letterSpacing: '-0.5px',
         }}>
           {initial}
         </span>
@@ -99,31 +111,29 @@ function BrandLogo({ brand }) {
   );
 }
 
-// Bike image with fallback to emoji
-function BikeImage({ name, type }) {
-  const [failed, setFailed] = useState(false);
-  const imgSrc = BIKE_IMAGES[name];
-  const emoji = TYPE_EMOJI[type] || '🏍️';
-
-  if (!imgSrc || failed) {
-    return (
-      <div style={{
-        width: '100%', height: 90,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 52,
-      }}>
-        {emoji}
-      </div>
-    );
-  }
+// Styled bike visual — gradient background + large type emoji
+function BikeImage({ name, type, brand }) {
+  const gradient = BRAND_GRADIENTS[brand] || BRAND_GRADIENTS['default'];
+  const emoji = TYPE_BIG_EMOJI[type] || TYPE_EMOJI[type] || '🏍️';
 
   return (
-    <img
-      src={imgSrc}
-      alt={name}
-      style={{ width: '100%', height: 90, objectFit: 'contain', borderRadius: 8 }}
-      onError={() => setFailed(true)}
-    />
+    <div style={{
+      width: '100%', height: 90, borderRadius: 10,
+      background: gradient,
+      border: '1px solid rgba(255,255,255,0.06)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 54, marginBottom: 4,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {/* subtle glow behind emoji */}
+      <div style={{
+        position: 'absolute', width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.04)', filter: 'blur(20px)',
+      }} />
+      <span style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))', position: 'relative' }}>
+        {emoji}
+      </span>
+    </div>
   );
 }
 
@@ -147,8 +157,8 @@ function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
         </button>
       </div>
 
-      {/* Real bike image */}
-      <BikeImage name={bike.name} type={bike.type} />
+      {/* Styled bike visual */}
+      <BikeImage name={bike.name} type={bike.type} brand={bike.brand} />
 
       <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1rem', lineHeight: 1.2, marginBottom: 2, marginTop: 6 }}>{bike.name}</div>
       <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginBottom: 6 }}>{bike.brand}</div>
