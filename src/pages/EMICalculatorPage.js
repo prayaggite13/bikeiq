@@ -45,7 +45,7 @@ export default function EMICalculatorPage({ navigate }) {
   const [interestRate, setInterestRate] = useState(9.5);
   const [selectedBike, setSelectedBike] = useState('');
   const [showBikeList, setShowBikeList] = useState(false);
-  const [processingFee, setProcessingFee] = useState(1500);
+  const [processingFee] = useState(1500);
 
   const price = parseFloat(bikePrice) || 0;
   const down = parseFloat(downPayment) || 0;
