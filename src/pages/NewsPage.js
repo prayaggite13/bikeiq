@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, ExternalLink, Zap } from 'lucide-react';
+import { useLang } from '../utils/LanguageContext';
 import { timeAgo } from '../utils/news';
 
 const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const FILTERS = [
-  { label: 'All News',        topic: 'latest Indian motorcycle and scooter news, launches, reviews, prices' },
-  { label: '🚀 Launches',     topic: 'new bike and scooter launches in India 2025' },
-  { label: '⚡ EV',           topic: 'electric scooter and bike news India 2025, Ola Ather TVS EV' },
-  { label: '🏍️ Reviews',     topic: 'bike and scooter reviews and test rides India 2025' },
-  { label: '💰 Prices',       topic: 'bike price hike, discounts, offers India 2025' },
-  { label: '🏆 Royal Enfield',topic: 'Royal Enfield news launches India 2025' },
-  { label: '🟠 KTM Bajaj',    topic: 'KTM and Bajaj motorcycle news India 2025' },
-];
+// FILTERS moved inside component for translation support
 
 const FALLBACK_NEWS = {
   0: [
@@ -112,6 +105,17 @@ Rules:
 }
 
 export default function NewsPage() {
+  const { t, lang } = useLang();
+  const langPrompt = lang === 'hi' ? 'Respond entirely in Hindi language.' : 'Respond in English.';
+  const FILTERS = [
+    { label: t('allNews'),      topic: `latest Indian motorcycle and scooter news, launches, reviews, prices. ${langPrompt}` },
+    { label: t('launches'),     topic: `new bike and scooter launches in India 2025. ${langPrompt}` },
+    { label: t('ev'),           topic: `electric scooter and bike news India 2025. ${langPrompt}` },
+    { label: t('reviews'),      topic: `bike and scooter reviews and test rides India 2025. ${langPrompt}` },
+    { label: t('prices'),       topic: `bike price hike, discounts, offers India 2025. ${langPrompt}` },
+    { label: t('royalEnfield'), topic: `Royal Enfield news launches India 2025. ${langPrompt}` },
+    { label: t('ktmBajaj'),     topic: `KTM and Bajaj motorcycle news India 2025. ${langPrompt}` },
+  ];
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState(0);
@@ -149,7 +153,7 @@ export default function NewsPage() {
     <div className="page" style={{ paddingBottom: 100 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 className="section-title">📰 Live News</h2>
+        <h2 className="section-title">{t('liveNews')}</h2>
         <button
           className="icon-btn"
           onClick={() => load(activeFilter)}
@@ -165,11 +169,11 @@ export default function NewsPage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)' }}>
           <Zap size={12} color="var(--accent)" />
-          <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700 }}>AI POWERED</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700 }}>{t('aiPowered')}</span>
         </div>
         {lastUpdated && (
           <span style={{ fontSize: '0.7rem', color: 'var(--text3)' }}>
-            Updated {timeAgo(lastUpdated.toISOString())} · BikeIQ News Engine
+            Updated {timeAgo(lastUpdated.toISOString())} · {t('bikeiqEngine')}
           </span>
         )}
       </div>
@@ -191,7 +195,7 @@ export default function NewsPage() {
       {loading && (
         <div className="loading">
           <div className="spinner" />
-          <div style={{ fontSize: '0.82rem' }}>Generating latest news...</div>
+          <div style={{ fontSize: '0.82rem' }}>{t('generatingNews')}</div>
         </div>
       )}
 
@@ -200,7 +204,7 @@ export default function NewsPage() {
         <div style={{ background: 'rgba(255,82,82,0.08)', border: '1px solid rgba(255,82,82,0.2)', borderRadius: 12, padding: 20, textAlign: 'center', color: 'var(--red)', fontSize: 13 }}>
           ⚠️ {error}
           <div style={{ marginTop: 10 }}>
-            <button className="btn btn-outline btn-sm" onClick={() => load(activeFilter)}>Try Again</button>
+            <button className="btn btn-outline btn-sm" onClick={() => load(activeFilter)}>{t('tryAgain')}</button>
           </div>
         </div>
       )}
@@ -266,7 +270,7 @@ export default function NewsPage() {
                   display: 'flex', alignItems: 'center', gap: 4,
                   marginTop: 8, color: 'var(--accent)', fontSize: '0.72rem', fontWeight: 600
                 }}>
-                  <ExternalLink size={11} /> Read full article
+                  <ExternalLink size={11} /> {t('readFullArticle')}
                 </div>
               </div>
             </a>
@@ -277,8 +281,8 @@ export default function NewsPage() {
       {!loading && !error && articles.length === 0 && (
         <div className="empty">
           <div className="empty-icon">📭</div>
-          <h3>No articles found</h3>
-          <p>Try a different filter or refresh</p>
+          <h3>{t('noArticles')}</h3>
+          <p>{t('tryDifferentFilter')}</p>
         </div>
       )}
     </div>
