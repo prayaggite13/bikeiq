@@ -59,14 +59,7 @@ const TYPE_EMOJI = {
   Cruiser: '🏍️', Adventure: '🏍️', Electric: '⚡',
 };
 
-const CATEGORIES = [
-  { label: t('scooters'),   query: 'Honda Activa 6G',            icon: '🛵' },
-  { label: t('commuters'),  query: 'Hero Splendor Plus',          icon: '🏍️' },
-  { label: t('sports'),     query: 'Bajaj Pulsar NS200',          icon: '🏎️' },
-  { label: t('cruisers'),   query: 'Royal Enfield Classic 350',   icon: '🛣️' },
-  { label: t('adventure'),  query: 'Royal Enfield Himalayan',     icon: '🏔️' },
-  { label: t('electric'),   query: 'Ola S1 Pro',                  icon: '⚡' },
-];
+// CATEGORIES defined inside component (uses t() for translation)
 
 const FEATURED_BIKES = [
   'Honda Activa 6G',
