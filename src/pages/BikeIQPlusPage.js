@@ -21,6 +21,7 @@ const TOOLS = [
     border: 'rgba(255,107,53,0.2)',
     accent: 'var(--accent3)',
     items: [
+      { id: 'emi', emoji: '🧮', title: 'EMI Calculator', desc: 'Loan amount, tenure & rate → monthly EMI + full amortization' },
       { id: 'ownership', emoji: '💰', title: 'Ownership Calculator', desc: 'True 3-5 year cost — fuel, insurance, service, EMI' },
       { id: 'insurance', emoji: '🛡️', title: 'Insurance Estimator', desc: 'City + bike + NCB → estimated annual premium' },
       { id: 'roadtax', emoji: '📋', title: 'Road Tax Calculator', desc: 'State-wise RTO charges + full on-road price breakdown' },

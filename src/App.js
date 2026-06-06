@@ -22,6 +22,7 @@ import ServiceCenterPage from './pages/ServiceCenterPage';
 import DealerLocatorPage from './pages/DealerLocatorPage';
 import AccessoryAdvisorPage from './pages/AccessoryAdvisorPage';
 import UsedPricePage from './pages/UsedPricePage';
+import EMICalculatorPage from './pages/EMICalculatorPage';
 import { LanguageProvider } from './utils/LanguageContext';
 import './App.css';
 
@@ -91,6 +92,7 @@ export default function App() {
           {page === 'dealer'        && <DealerLocatorPage {...props} />}
           {page === 'accessory'     && <AccessoryAdvisorPage {...props} />}
           {page === 'usedprice'     && <UsedPricePage {...props} />}
+          {page === 'emi'           && <EMICalculatorPage {...props} />}
         </main>
         <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
       </div>
