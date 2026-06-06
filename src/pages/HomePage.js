@@ -181,7 +181,7 @@ function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
 }
 
 export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const [query, setQuery] = useState('');
   const CATEGORIES = [
     { label: t('scooters'),  query: 'Honda Activa 6G',            icon: '🛵' },

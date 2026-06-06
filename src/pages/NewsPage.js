@@ -122,6 +122,7 @@ export default function NewsPage() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(async (idx) => {
     setLoading(true);
     setError('');
