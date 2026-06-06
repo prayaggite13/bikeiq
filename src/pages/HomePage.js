@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Zap, TrendingUp, ChevronRight, RefreshCw } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
-import { LangContext, CityContext, CITY_TRENDING, CITY_PRICE_FACTORS } from '../components/Header';
+import { useLang } from '../context/AppContext';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STATIC DATA
-// ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_TRENDING = [
+const POPULAR_SEARCHES = [
   'Royal Enfield Classic 350', 'Honda Activa 6G', 'Ola S1 Pro',
   'Bajaj Pulsar NS200', 'TVS Apache RTR 160', 'Ather 450X',
   'Hero Splendor Plus', 'KTM Duke 390', 'Yamaha R15 V4',
@@ -16,22 +13,22 @@ const DEFAULT_TRENDING = [
 ];
 
 const BRANDS = [
-  { name: 'Hero',            logo: 'https://cdn.brandfetch.io/heromotocorp.com/icon.png',        bg: '#1565C0' },
-  { name: 'Honda',           logo: 'https://cdn.brandfetch.io/honda.com/icon.png',               bg: '#CC0000' },
-  { name: 'TVS',             logo: 'https://cdn.brandfetch.io/tvsmotor.com/icon.png',            bg: '#e65c00' },
-  { name: 'Bajaj',           logo: 'https://cdn.brandfetch.io/bajajauto.com/icon.png',           bg: '#1565C0' },
-  { name: 'Royal Enfield',   logo: 'https://cdn.brandfetch.io/royalenfield.com/icon.png',        bg: '#3a3a3a' },
-  { name: 'Yamaha',          logo: 'https://cdn.brandfetch.io/yamaha-motor.com/icon.png',        bg: '#1565C0' },
-  { name: 'Suzuki',          logo: 'https://cdn.brandfetch.io/suzuki.com/icon.png',              bg: '#1a1a1a' },
-  { name: 'KTM',             logo: 'https://cdn.brandfetch.io/ktm.com/icon.png',                 bg: '#E65100' },
-  { name: 'Ola Electric',    logo: 'https://cdn.brandfetch.io/olaelectric.com/icon.png',         bg: '#1B5E20' },
-  { name: 'Ather',           logo: 'https://cdn.brandfetch.io/atherenergy.com/icon.png',         bg: '#1B5E20' },
-  { name: 'Simple Energy',   logo: 'https://cdn.brandfetch.io/simpleenergy.in/icon.png',         bg: '#1B5E20' },
-  { name: 'Revolt',          logo: 'https://cdn.brandfetch.io/revoltmotors.com/icon.png',        bg: '#1B5E20' },
-  { name: 'BMW',             logo: 'https://cdn.brandfetch.io/bmw.com/icon.png',                 bg: '#1565C0' },
-  { name: 'Kawasaki',        logo: 'https://cdn.brandfetch.io/kawasaki.com/icon.png',            bg: '#1B5E20' },
-  { name: 'Triumph',         logo: 'https://cdn.brandfetch.io/triumphmotorcycles.com/icon.png',  bg: '#cc0000' },
-  { name: 'Harley-Davidson', logo: 'https://cdn.brandfetch.io/harley-davidson.com/icon.png',     bg: '#E65100' },
+  { name: 'Hero',            logo: 'https://cdn.brandfetch.io/heromotocorp.com/icon.png',       bg: '#1565C0' },
+  { name: 'Honda',           logo: 'https://cdn.brandfetch.io/honda.com/icon.png',              bg: '#CC0000' },
+  { name: 'TVS',             logo: 'https://cdn.brandfetch.io/tvsmotor.com/icon.png',           bg: '#e65c00' },
+  { name: 'Bajaj',           logo: 'https://cdn.brandfetch.io/bajajauto.com/icon.png',          bg: '#1565C0' },
+  { name: 'Royal Enfield',   logo: 'https://cdn.brandfetch.io/royalenfield.com/icon.png',       bg: '#3a3a3a' },
+  { name: 'Yamaha',          logo: 'https://cdn.brandfetch.io/yamaha-motor.com/icon.png',       bg: '#1565C0' },
+  { name: 'Suzuki',          logo: 'https://cdn.brandfetch.io/suzuki.com/icon.png',             bg: '#1a1a1a' },
+  { name: 'KTM',             logo: 'https://cdn.brandfetch.io/ktm.com/icon.png',                bg: '#E65100' },
+  { name: 'Ola Electric',    logo: 'https://cdn.brandfetch.io/olaelectric.com/icon.png',        bg: '#1B5E20' },
+  { name: 'Ather',           logo: 'https://cdn.brandfetch.io/atherenergy.com/icon.png',        bg: '#1B5E20' },
+  { name: 'Simple Energy',   logo: 'https://cdn.brandfetch.io/simpleenergy.in/icon.png',        bg: '#1B5E20' },
+  { name: 'Revolt',          logo: 'https://cdn.brandfetch.io/revoltmotors.com/icon.png',       bg: '#1B5E20' },
+  { name: 'BMW',             logo: 'https://cdn.brandfetch.io/bmw.com/icon.png',                bg: '#1565C0' },
+  { name: 'Kawasaki',        logo: 'https://cdn.brandfetch.io/kawasaki.com/icon.png',           bg: '#1B5E20' },
+  { name: 'Triumph',         logo: 'https://cdn.brandfetch.io/triumphmotorcycles.com/icon.png', bg: '#cc0000' },
+  { name: 'Harley-Davidson', logo: 'https://cdn.brandfetch.io/harley-davidson.com/icon.png',    bg: '#E65100' },
 ];
 
 const BRAND_GRADIENTS = {
@@ -44,409 +41,236 @@ const BRAND_GRADIENTS = {
   'Hero':          'linear-gradient(135deg, #1565C044 0%, #00d4ff22 100%)',
   'Yamaha':        'linear-gradient(135deg, #1565C044 0%, #0044aa22 100%)',
   'TVS':           'linear-gradient(135deg, #e6510022 0%, #ffd74022 100%)',
-  'Suzuki':        'linear-gradient(135deg, #1a1a1a44 0%, #4a4a4a22 100%)',
   'default':       'linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(255,107,53,0.05) 100%)',
 };
 
-const TYPE_BIG_EMOJI = {
-  Scooter: '🛵', Commuter: '🏍️', Sport: '🏎️',
-  Cruiser: '🏍️', Adventure: '🏔️', Electric: '⚡',
-};
+const TYPE_BIG_EMOJI = { Scooter:'🛵', Commuter:'🏍️', Sport:'🏎️', Cruiser:'🏍️', Adventure:'🏔️', Electric:'⚡' };
+const FEATURED_BIKES  = ['Honda Activa 6G','Royal Enfield Classic 350','Ola S1 Pro','Bajaj Pulsar NS200','Ather 450X','KTM Duke 390'];
 
-const FEATURED_BIKES = [
-  'Honda Activa 6G', 'Royal Enfield Classic 350', 'Ola S1 Pro',
-  'Bajaj Pulsar NS200', 'Ather 450X', 'KTM Duke 390',
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SUBCOMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
 function BrandLogo({ brand }) {
   const [failed, setFailed] = useState(false);
   const initial = brand.name.slice(0, 2).toUpperCase();
   return (
-    <div style={{
-      width: 48, height: 48, borderRadius: 14,
-      background: failed || !brand.logo ? brand.bg : '#fff',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden', margin: '0 auto 8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-      border: '1px solid rgba(255,255,255,0.08)',
-    }}>
-      {brand.logo && !failed ? (
-        <img
-          src={brand.logo} alt={brand.name}
-          style={{ width: '76%', height: '76%', objectFit: 'contain' }}
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        <span style={{
-          fontSize: initial.length > 1 ? 14 : 20, fontWeight: 800, color: '#fff',
-          fontFamily: 'Rajdhani, sans-serif', letterSpacing: '-0.5px',
-        }}>{initial}</span>
-      )}
+    <div style={{ width:48, height:48, borderRadius:14, background: failed ? brand.bg : '#fff', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', margin:'0 auto 8px', boxShadow:'0 2px 8px rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.08)' }}>
+      {brand.logo && !failed
+        ? <img src={brand.logo} alt={brand.name} style={{ width:'76%', height:'76%', objectFit:'contain' }} onError={() => setFailed(true)} />
+        : <span style={{ fontSize:14, fontWeight:800, color:'#fff', fontFamily:'Rajdhani, sans-serif' }}>{initial}</span>
+      }
     </div>
   );
 }
 
 function BikeImage({ type, brand }) {
   const gradient = BRAND_GRADIENTS[brand] || BRAND_GRADIENTS['default'];
-  const emoji = TYPE_BIG_EMOJI[type] || '🏍️';
+  const emoji    = TYPE_BIG_EMOJI[type] || '🏍️';
   return (
-    <div style={{
-      width: '100%', height: 90, borderRadius: 10, background: gradient,
-      border: '1px solid rgba(255,255,255,0.06)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 54, marginBottom: 4, position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', filter: 'blur(20px)' }} />
-      <span style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))', position: 'relative' }}>{emoji}</span>
+    <div style={{ width:'100%', height:90, borderRadius:10, background:gradient, border:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:54, marginBottom:4, position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', width:80, height:80, borderRadius:'50%', background:'rgba(255,255,255,0.04)', filter:'blur(20px)' }} />
+      <span style={{ filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.4))', position:'relative' }}>{emoji}</span>
     </div>
   );
 }
 
-function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted, cityFactor }) {
+function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
   const saved = isWatchlisted(bike);
-  // Apply city price factor if a city is selected
-  const displayPrice = cityFactor ? Math.round(bike.basePrice * cityFactor) : bike.basePrice;
-
   return (
-    <div
-      className="card glow"
-      style={{ flexShrink: 0, width: 200, cursor: 'pointer' }}
-      onClick={() => navigate('bike', { ...bike, basePrice: displayPrice })}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-        <span className={`tag ${bike.fuelType === 'Electric' ? 'tag-ev' : 'tag-petrol'}`} style={{ fontSize: '0.65rem' }}>
+    <div className="card glow" style={{ flexShrink:0, width:200, cursor:'pointer' }} onClick={() => navigate('bike', bike)}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
+        <span className={`tag ${bike.fuelType === 'Electric' ? 'tag-ev' : 'tag-petrol'}`} style={{ fontSize:'0.65rem' }}>
           {bike.fuelType === 'Electric' ? '⚡ EV' : '⛽ Petrol'}
         </span>
-        <button
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: saved ? 'var(--accent3)' : 'var(--text3)', fontSize: '1rem', padding: 0 }}
-          onClick={e => { e.stopPropagation(); toggleWatchlist(bike); }}
-        >
+        <button style={{ background:'none', border:'none', cursor:'pointer', color: saved ? 'var(--accent3)' : 'var(--text3)', fontSize:'1rem', padding:0 }}
+          onClick={e => { e.stopPropagation(); toggleWatchlist(bike); }}>
           {saved ? '♥' : '♡'}
         </button>
       </div>
-
       <BikeImage type={bike.type} brand={bike.brand} />
-
-      <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1rem', lineHeight: 1.2, marginBottom: 2, marginTop: 6 }}>{bike.name}</div>
-      <div style={{ fontSize: '0.72rem', color: 'var(--text3)', marginBottom: 6 }}>{bike.brand}</div>
-      <div style={{ fontFamily: 'Rajdhani', fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>
-        {formatINR(displayPrice)}
-        {cityFactor && cityFactor !== 1 && (
-          <span style={{ fontSize: '0.62rem', color: 'var(--text3)', fontFamily: 'DM Sans', fontWeight: 400, marginLeft: 4 }}>est.</span>
-        )}
+      <div style={{ fontFamily:'Rajdhani', fontWeight:700, fontSize:'1rem', lineHeight:1.2, marginBottom:2, marginTop:6 }}>{bike.name}</div>
+      <div style={{ fontSize:'0.72rem', color:'var(--text3)', marginBottom:6 }}>{bike.brand}</div>
+      <div style={{ fontFamily:'Rajdhani', fontSize:'1.2rem', fontWeight:700, color:'var(--accent)', marginBottom:6 }}>{formatINR(bike.basePrice)}</div>
+      <div style={{ display:'flex', gap:6 }}>
+        {bike.mileage  && <div style={{ background:'var(--bg3)', borderRadius:6, padding:'4px 8px', fontSize:'0.68rem', color:'var(--text2)' }}>⛽ {bike.mileage.claimed}</div>}
+        {bike.evSpecs  && <div style={{ background:'var(--bg3)', borderRadius:6, padding:'4px 8px', fontSize:'0.68rem', color:'var(--green)' }}>⚡ {bike.evSpecs.range?.claimed}</div>}
       </div>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {bike.mileage && (
-          <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '4px 8px', fontSize: '0.68rem', color: 'var(--text2)' }}>
-            ⛽ {bike.mileage.claimed}
-          </div>
-        )}
-        {bike.evSpecs && (
-          <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '4px 8px', fontSize: '0.68rem', color: 'var(--green)' }}>
-            ⚡ {bike.evSpecs.range?.claimed}
-          </div>
-        )}
-      </div>
-      {bike.ownerRating && (
-        <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--yellow)' }}>
-          ★ {bike.ownerRating} <span style={{ color: 'var(--text3)' }}>({bike.totalReviews?.toLocaleString()})</span>
-        </div>
-      )}
+      {bike.ownerRating && <div style={{ marginTop:6, fontSize:'0.72rem', color:'var(--yellow)' }}>★ {bike.ownerRating} <span style={{ color:'var(--text3)' }}>({bike.totalReviews?.toLocaleString()})</span></div>}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOME PAGE
-// ─────────────────────────────────────────────────────────────────────────────
 export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
-  const { t }    = useContext(LangContext);
-  const { city } = useContext(CityContext);
+  const { t } = useLang();
 
-  const [query, setQuery]           = useState('');
-  const [featuredBikes, setFeaturedBikes] = useState([]);
+  const [query, setQuery]                     = useState('');
+  const [featuredBikes, setFeaturedBikes]     = useState([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [featuredError, setFeaturedError]     = useState(false);
 
-  // City-specific data
-  const trendingList = city && CITY_TRENDING[city] ? CITY_TRENDING[city] : DEFAULT_TRENDING;
-  const cityFactor   = city && CITY_PRICE_FACTORS[city] ? CITY_PRICE_FACTORS[city] : null;
-
-  // Category labels use translated keys
   const CATEGORIES = [
-    { labelKey: 'scooters',  query: 'Honda Activa 6G',           icon: '🛵' },
-    { labelKey: 'commuters', query: 'Hero Splendor Plus',         icon: '🏍️' },
-    { labelKey: 'sports',    query: 'Bajaj Pulsar NS200',         icon: '🏎️' },
-    { labelKey: 'cruisers',  query: 'Royal Enfield Classic 350',  icon: '🛣️' },
-    { labelKey: 'adventure', query: 'Royal Enfield Himalayan',    icon: '🏔️' },
-    { labelKey: 'electric',  query: 'Ola S1 Pro',                 icon: '⚡' },
+    { labelKey:'scooters',  query:'Honda Activa 6G',          icon:'🛵' },
+    { labelKey:'commuters', query:'Hero Splendor Plus',        icon:'🏍️' },
+    { labelKey:'sports',    query:'Bajaj Pulsar NS200',        icon:'🏎️' },
+    { labelKey:'cruisers',  query:'Royal Enfield Classic 350', icon:'🛣️' },
+    { labelKey:'adventure', query:'Royal Enfield Himalayan',   icon:'🏔️' },
+    { labelKey:'electric',  query:'Ola S1 Pro',                icon:'⚡' },
   ];
 
   useEffect(() => { loadFeatured(); }, []);
 
   const loadFeatured = async () => {
-    setLoadingFeatured(true);
-    setFeaturedError(false);
-    setFeaturedBikes([]);
+    setLoadingFeatured(true); setFeaturedError(false); setFeaturedBikes([]);
     try {
-      const first3 = await Promise.all(FEATURED_BIKES.slice(0, 3).map(name => searchBikeInfo(name)));
+      const first3 = await Promise.all(FEATURED_BIKES.slice(0, 3).map(n => searchBikeInfo(n)));
       setFeaturedBikes(first3.filter(Boolean));
       setLoadingFeatured(false);
-      const rest = await Promise.all(FEATURED_BIKES.slice(3).map(name => searchBikeInfo(name)));
+      const rest = await Promise.all(FEATURED_BIKES.slice(3).map(n => searchBikeInfo(n)));
       setFeaturedBikes(prev => [...prev, ...rest.filter(Boolean)]);
-    } catch {
-      setFeaturedError(true);
-      setLoadingFeatured(false);
-    }
+    } catch { setFeaturedError(true); setLoadingFeatured(false); }
   };
 
-  const handleSearch = (q) => {
-    if (!q.trim()) return;
-    navigate('search', { autoSearch: true, query: q });
-  };
+  const handleSearch = (q) => { if (q.trim()) navigate('search', { autoSearch:true, query:q }); };
 
   return (
     <div className="page slide-up">
 
-      {/* ── Hero Section ── */}
-      <div style={{
-        background: 'linear-gradient(160deg, rgba(0,212,255,0.09) 0%, rgba(179,136,255,0.06) 50%, rgba(255,107,53,0.05) 100%)',
-        border: '1px solid var(--border)',
-        borderRadius: 24, padding: '32px 20px 28px',
-        marginBottom: 20, position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(0,212,255,0.10) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -30, left: -30, width: 140, height: 140, background: 'radial-gradient(circle, rgba(179,136,255,0.08) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      {/* Hero */}
+      <div style={{ background:'linear-gradient(160deg, rgba(0,212,255,0.09) 0%, rgba(179,136,255,0.06) 50%, rgba(255,107,53,0.05) 100%)', border:'1px solid var(--border)', borderRadius:24, padding:'32px 20px 28px', marginBottom:20, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:-40, right:-40, width:180, height:180, background:'radial-gradient(circle, rgba(0,212,255,0.10) 0%, transparent 70%)', borderRadius:'50%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:-30, left:-30, width:140, height:140, background:'radial-gradient(circle, rgba(179,136,255,0.08) 0%, transparent 70%)', borderRadius:'50%', pointerEvents:'none' }} />
 
-        {/* Badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)', borderRadius: 20, padding: '4px 12px', marginBottom: 14 }}>
+        <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(0,212,255,0.1)', border:'1px solid rgba(0,212,255,0.25)', borderRadius:20, padding:'4px 12px', marginBottom:14 }}>
           <Zap size={11} color="var(--accent)" fill="var(--accent)" />
-          <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {t('tagline')}
-          </span>
+          <span style={{ fontSize:'0.68rem', color:'var(--accent)', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('tagline')}</span>
         </div>
 
-        {/* Headline */}
-        <h1 style={{ fontFamily: 'Rajdhani', fontSize: '2.2rem', fontWeight: 800, lineHeight: 1.1, marginBottom: 10 }}>
-          {t('heroTitle1')}<br />
-          <span style={{ color: 'var(--accent)' }}>{t('heroTitle2')}</span>
+        <h1 style={{ fontFamily:'Rajdhani', fontSize:'2.2rem', fontWeight:800, lineHeight:1.1, marginBottom:10 }}>
+          {t('heroTitle1')}<br /><span style={{ color:'var(--accent)' }}>{t('heroTitle2')}</span>
         </h1>
 
-        {/* Subheading */}
-        <p style={{ fontSize: '0.88rem', color: 'var(--text2)', marginBottom: 20, lineHeight: 1.6, maxWidth: 420 }}>
+        <p style={{ fontSize:'0.88rem', color:'var(--text2)', marginBottom:20, lineHeight:1.6, maxWidth:420 }}>
           {t('heroSub')}
         </p>
 
-        {/* Search */}
-        <div className="search-bar" style={{ marginBottom: 20 }}>
+        <div className="search-bar" style={{ marginBottom:20 }}>
           <Search size={18} color="var(--text3)" />
-          <input
-            placeholder={t('searchPlaceholder')}
-            value={query}
+          <input placeholder={t('searchPlaceholder')} value={query}
             onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch(query)}
-          />
-          <button className="btn btn-primary btn-sm" onClick={() => handleSearch(query)} style={{ padding: '7px 16px' }}>
-            {t('go')}
-          </button>
+            onKeyDown={e => e.key === 'Enter' && handleSearch(query)} />
+          <button className="btn btn-primary btn-sm" onClick={() => handleSearch(query)} style={{ padding:'7px 16px' }}>{t('go')}</button>
         </div>
 
-        {/* Feature pills */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:22 }}>
           {[
-            { icon: '🔍', label: t('bikesListed') + ' 500+' },
-            { icon: '⚖️', label: 'Compare up to 3' },
-            { icon: '⚡', label: 'EV range & costs' },
-            { icon: '🤖', label: 'AI insights' },
-            { icon: '📰', label: 'Live news' },
-            { icon: '💰', label: city ? `${t('pricesIn')} ${city}` : 'On-road prices' },
+            { icon:'🔍', label:'Search 500+ bikes' },
+            { icon:'⚖️', label:'Compare up to 3' },
+            { icon:'⚡', label:'EV range & costs' },
+            { icon:'🤖', label:'AI insights' },
+            { icon:'📰', label:'Live news' },
+            { icon:'💰', label:'On-road prices' },
           ].map(f => (
-            <div key={f.label} style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: 'var(--bg2)', border: '1px solid var(--border)',
-              borderRadius: 20, padding: '5px 10px',
-              fontSize: '0.72rem', color: 'var(--text2)', fontWeight: 500,
-            }}>
-              <span style={{ fontSize: '0.82rem' }}>{f.icon}</span> {f.label}
+            <div key={f.label} style={{ display:'flex', alignItems:'center', gap:5, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:20, padding:'5px 10px', fontSize:'0.72rem', color:'var(--text2)', fontWeight:500 }}>
+              <span style={{ fontSize:'0.82rem' }}>{f.icon}</span> {f.label}
             </div>
           ))}
         </div>
 
-        {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:10 }}>
           {[
-            { value: '500+', label: t('bikesListed') },
-            { value: '16',   label: t('brands') },
-            { value: city ? '1' : '8', label: city ? city : t('citiesPriced') },
+            { value:'500+', label: t('bikesListed') },
+            { value:'16',   label: t('brands') },
+            { value:'8',    label: t('citiesPriced') },
           ].map(stat => (
-            <div key={stat.label} style={{
-              background: 'var(--bg2)', border: '1px solid var(--border)',
-              borderRadius: 12, padding: '10px 8px', textAlign: 'center',
-            }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>{stat.value}</div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text3)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
+            <div key={stat.label} style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:12, padding:'10px 8px', textAlign:'center' }}>
+              <div style={{ fontFamily:'Rajdhani', fontSize:'1.3rem', fontWeight:800, color:'var(--accent)', lineHeight:1 }}>{stat.value}</div>
+              <div style={{ fontSize:'0.65rem', color:'var(--text3)', marginTop:3, textTransform:'uppercase', letterSpacing:'0.05em' }}>{stat.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* City price banner — shown when city is selected */}
-      {city && cityFactor && (
-        <div style={{
-          marginBottom: 20,
-          background: 'rgba(0,212,255,0.06)',
-          border: '1px solid rgba(0,212,255,0.2)',
-          borderRadius: 14, padding: '12px 16px',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <span style={{ fontSize: '1.1rem' }}>📍</span>
-          <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)' }}>
-              {t('pricesIn')} {city}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>
-              On-road prices include RTO & insurance estimates for {city}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* BikeIQ+ Banner */}
-      <div
-        onClick={() => navigate('bikeiqplus')}
-        style={{
-          marginBottom: 20, cursor: 'pointer',
-          background: 'linear-gradient(135deg, rgba(179,136,255,0.12) 0%, rgba(0,212,255,0.06) 100%)',
-          border: '1px solid rgba(179,136,255,0.25)',
-          borderRadius: 18, padding: '18px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          position: 'relative', overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'radial-gradient(circle, rgba(179,136,255,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
+      <div onClick={() => navigate('bikeiqplus')} style={{ marginBottom:20, cursor:'pointer', background:'linear-gradient(135deg, rgba(179,136,255,0.12) 0%, rgba(0,212,255,0.06) 100%)', border:'1px solid rgba(179,136,255,0.25)', borderRadius:18, padding:'18px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:-20, right:-20, width:100, height:100, background:'radial-gradient(circle, rgba(179,136,255,0.15) 0%, transparent 70%)', borderRadius:'50%' }} />
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: '1.3rem' }}>✨</span>
-            <span style={{ fontFamily: 'Rajdhani', fontWeight: 800, fontSize: '1.2rem', color: 'var(--purple)' }}>{t('bikeiqPlusTools')}</span>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+            <span style={{ fontSize:'1.3rem' }}>✨</span>
+            <span style={{ fontFamily:'Rajdhani', fontWeight:800, fontSize:'1.2rem', color:'var(--purple)' }}>{t('bikeiqPlusTools')}</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text2)', lineHeight: 1.4 }}>
-            {t('bikeiqPlusSub')}
-          </div>
-          <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['🎯 Quiz', '🔧 AI Mechanic', '🛡️ Insurance', '📉 Resale', '🌱 First Bike'].map(tag => (
-              <span key={tag} style={{ fontSize: '0.68rem', background: 'rgba(179,136,255,0.1)', color: 'var(--purple)', border: '1px solid rgba(179,136,255,0.2)', borderRadius: 20, padding: '2px 8px' }}>{tag}</span>
+          <div style={{ fontSize:'0.78rem', color:'var(--text2)', lineHeight:1.4 }}>{t('bikeiqPlusSub')}</div>
+          <div style={{ marginTop:8, display:'flex', gap:6, flexWrap:'wrap' }}>
+            {['🎯 Quiz','🔧 AI Mechanic','🛡️ Insurance','📉 Resale','🌱 First Bike'].map(tag => (
+              <span key={tag} style={{ fontSize:'0.68rem', background:'rgba(179,136,255,0.1)', color:'var(--purple)', border:'1px solid rgba(179,136,255,0.2)', borderRadius:20, padding:'2px 8px' }}>{tag}</span>
             ))}
           </div>
         </div>
-        <div style={{ color: 'var(--purple)', fontSize: '1.2rem', flexShrink: 0, marginLeft: 12 }}>→</div>
+        <div style={{ color:'var(--purple)', fontSize:'1.2rem', flexShrink:0, marginLeft:12 }}>→</div>
       </div>
 
       {/* Browse Bikes */}
       <FeaturedSection navigate={navigate} />
 
       {/* Featured This Week */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div className="section-title" style={{ fontSize: '1rem', marginBottom: 0 }}>
-            {t('featuredThisWeek')}
-            {city && <span style={{ fontSize: '0.72rem', color: 'var(--text3)', fontFamily: 'DM Sans', fontWeight: 400, marginLeft: 6 }}>· {city}</span>}
-          </div>
-          <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={loadFeatured} title="Refresh">
-            <RefreshCw size={13} />
-          </button>
+      <div style={{ marginBottom:20 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          <div className="section-title" style={{ fontSize:'1rem', marginBottom:0 }}>{t('featuredThisWeek')}</div>
+          <button className="icon-btn" style={{ width:30, height:30 }} onClick={loadFeatured}><RefreshCw size={13} /></button>
         </div>
-
         {loadingFeatured && featuredBikes.length === 0 && (
-          <div style={{ display: 'flex', gap: 12, overflow: 'hidden' }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ flexShrink: 0, width: 200, height: 180, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, animation: 'pulse 1.5s ease infinite', animationDelay: `${i * 0.2}s` }} />
-            ))}
+          <div style={{ display:'flex', gap:12, overflow:'hidden' }}>
+            {[1,2,3].map(i => <div key={i} style={{ flexShrink:0, width:200, height:180, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:16, animation:'pulse 1.5s ease infinite', animationDelay:`${i*0.2}s` }} />)}
           </div>
         )}
-
-        {featuredError && (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text3)', fontSize: '0.82rem' }}>
-            Could not load featured bikes. <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={loadFeatured}>Retry</span>
-          </div>
-        )}
-
+        {featuredError && <div style={{ padding:'20px', textAlign:'center', color:'var(--text3)', fontSize:'0.82rem' }}>Could not load. <span style={{ color:'var(--accent)', cursor:'pointer' }} onClick={loadFeatured}>Retry</span></div>}
         {featuredBikes.length > 0 && (
           <div className="scroll-row">
-            {featuredBikes.map((bike, i) => (
-              <FeaturedBikeCard
-                key={i} bike={bike} navigate={navigate}
-                toggleWatchlist={toggleWatchlist} isWatchlisted={isWatchlisted}
-                cityFactor={cityFactor}
-              />
-            ))}
-            {loadingFeatured && (
-              <div style={{ flexShrink: 0, width: 200, height: 180, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-              </div>
-            )}
+            {featuredBikes.map((bike, i) => <FeaturedBikeCard key={i} bike={bike} navigate={navigate} toggleWatchlist={toggleWatchlist} isWatchlisted={isWatchlisted} />)}
+            {loadingFeatured && <div style={{ flexShrink:0, width:200, height:180, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center' }}><div className="spinner" style={{ width:24, height:24, borderWidth:2 }} /></div>}
           </div>
         )}
       </div>
 
       {/* Categories */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ fontSize: '1rem' }}>{t('browseByType')}</div>
+      <div style={{ marginBottom:20 }}>
+        <div className="section-title" style={{ fontSize:'1rem' }}>{t('browseByType')}</div>
         <div className="scroll-row">
           {CATEGORIES.map(cat => (
-            <div
-              key={cat.labelKey}
-              onClick={() => navigate('search', { autoSearch: true, query: cat.query })}
-              style={{ flexShrink: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 16px', cursor: 'pointer', textAlign: 'center', minWidth: 90, transition: 'all 0.2s' }}
-            >
-              <div style={{ fontSize: '1.6rem', marginBottom: 4 }}>{cat.icon}</div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text2)' }}>{t(cat.labelKey)}</div>
+            <div key={cat.labelKey} onClick={() => navigate('search', { autoSearch:true, query:cat.query })}
+              style={{ flexShrink:0, background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:14, padding:'12px 16px', cursor:'pointer', textAlign:'center', minWidth:90, transition:'all 0.2s' }}>
+              <div style={{ fontSize:'1.6rem', marginBottom:4 }}>{cat.icon}</div>
+              <div style={{ fontSize:'0.78rem', fontWeight:600, color:'var(--text2)' }}>{t(cat.labelKey)}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Trending — city-aware */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ fontSize: '1rem' }}>
-          <TrendingUp size={16} color="var(--accent3)" />
-          {city ? `${t('trendingIn')} ${city}` : t('trendingSearches')}
+      {/* Trending */}
+      <div style={{ marginBottom:20 }}>
+        <div className="section-title" style={{ fontSize:'1rem' }}>
+          <TrendingUp size={16} color="var(--accent3)" /> {t('trendingSearches')}
         </div>
         <div className="chip-row">
-          {trendingList.map(name => (
-            <span key={name} className="chip" onClick={() => navigate('search', { autoSearch: true, query: name })}>
-              {name}
-            </span>
-          ))}
+          {POPULAR_SEARCHES.map(name => <span key={name} className="chip" onClick={() => navigate('search', { autoSearch:true, query:name })}>{name}</span>)}
         </div>
       </div>
 
-      {/* All Brands */}
-      <div style={{ marginBottom: 20 }}>
-        <div className="section-title" style={{ fontSize: '1rem' }}>{t('allBrands')}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+      {/* Brands */}
+      <div style={{ marginBottom:20 }}>
+        <div className="section-title" style={{ fontSize:'1rem' }}>{t('allBrands')}</div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
           {BRANDS.map(brand => (
-            <div
-              key={brand.name}
-              className="card"
-              style={{ padding: '12px 8px', textAlign: 'center', cursor: 'pointer' }}
-              onClick={() => navigate('search', { autoSearch: true, query: `${brand.name} bike` })}
-            >
+            <div key={brand.name} className="card" style={{ padding:'12px 8px', textAlign:'center', cursor:'pointer' }} onClick={() => navigate('search', { autoSearch:true, query:`${brand.name} bike` })}>
               <BrandLogo brand={brand} />
-              <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text2)', lineHeight: 1.2 }}>{brand.name}</div>
+              <div style={{ fontSize:'0.68rem', fontWeight:600, color:'var(--text2)', lineHeight:1.2 }}>{brand.name}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* News teaser */}
-      <div className="card" style={{ cursor: 'pointer', background: 'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(255,107,53,0.04))' }} onClick={() => navigate('news')}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* News */}
+      <div className="card" style={{ cursor:'pointer', background:'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(255,107,53,0.04))' }} onClick={() => navigate('news')}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '1.1rem', marginBottom: 4 }}>{t('latestNews')}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text2)' }}>{t('latestNewsSub')}</div>
+            <div style={{ fontFamily:'Rajdhani', fontWeight:700, fontSize:'1.1rem', marginBottom:4 }}>{t('latestNews')}</div>
+            <div style={{ fontSize:'0.78rem', color:'var(--text2)' }}>{t('latestNewsSub')}</div>
           </div>
           <ChevronRight size={20} color="var(--accent)" />
         </div>

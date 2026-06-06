@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AppProvider } from './context/AppContext';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import HomePage from './pages/HomePage';
@@ -24,12 +25,12 @@ import AccessoryAdvisorPage from './pages/AccessoryAdvisorPage';
 import UsedPricePage from './pages/UsedPricePage';
 import './App.css';
 
-export default function App() {
-  const [page, setPage] = useState('home');
+function AppShell() {
+  const [page, setPage]               = useState('home');
   const [selectedBike, setSelectedBike] = useState(null);
   const [compareList, setCompareList] = useState([]);
-  const [watchlist, setWatchlist] = useState([]);
-  const [darkMode, setDarkMode] = useState(true);
+  const [watchlist, setWatchlist]     = useState([]);
+  const [darkMode, setDarkMode]       = useState(true);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
@@ -41,22 +42,15 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
-  const addToCompare = (bike) => {
+  const addToCompare      = (bike) => {
     if (compareList.length >= 3) return alert('Max 3 bikes for comparison');
     if (compareList.find(b => b.name === bike.name)) return;
     setCompareList(prev => [...prev, bike]);
   };
-
   const removeFromCompare = (name) => setCompareList(prev => prev.filter(b => b.name !== name));
-
-  const toggleWatchlist = (bike) => {
-    setWatchlist(prev =>
-      prev.find(b => b.name === bike.name)
-        ? prev.filter(b => b.name !== bike.name)
-        : [...prev, bike]
-    );
-  };
-
+  const toggleWatchlist   = (bike) => setWatchlist(prev =>
+    prev.find(b => b.name === bike.name) ? prev.filter(b => b.name !== bike.name) : [...prev, bike]
+  );
   const isWatchlisted = (bike) => watchlist.some(b => b.name === bike?.name);
 
   const props = {
@@ -66,36 +60,39 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header {...props} page={page} />
+      <Header navigate={navigate} darkMode={darkMode} setDarkMode={setDarkMode} />
       <main className="main-content">
-        {page === 'home'         && <HomePage {...props} />}
-        {page === 'search'       && <SearchPage {...props} />}
-        {page === 'bike'         && <BikeDetailPage {...props} />}
-        {page === 'compare'      && <ComparePage {...props} />}
-        {page === 'watchlist'    && <WatchlistPage {...props} />}
-        {page === 'news'         && <NewsPage {...props} />}
-        {page === 'ai'           && <AIPage {...props} />}
-        {page === 'commute'      && <CommuteFinderPage {...props} />}
-        {page === 'ownership'    && <OwnershipPage {...props} />}
-        {page === 'quiz'         && <BikeQuizPage {...props} />}
-        {page === 'resale'       && <ResalePage {...props} />}
-        {page === 'firstbike'    && <FirstBikePage {...props} />}
-        {page === 'insurance'    && <InsurancePage {...props} />}
-        {page === 'roadtax'      && <RoadTaxPage {...props} />}
-        {page === 'bikeiqplus'   && <BikeIQPlusPage {...props} />}
-        {page === 'mechanic'     && <AIMechanicPage {...props} />}
-        {page === 'health'       && <BikeHealthPage {...props} />}
-        {page === 'servicecenter'&& <ServiceCenterPage {...props} />}
-        {page === 'dealer'       && <DealerLocatorPage {...props} />}
-        {page === 'accessory'    && <AccessoryAdvisorPage {...props} />}
-        {page === 'usedprice'    && <UsedPricePage {...props} />}
+        {page === 'home'          && <HomePage {...props} />}
+        {page === 'search'        && <SearchPage {...props} />}
+        {page === 'bike'          && <BikeDetailPage {...props} />}
+        {page === 'compare'       && <ComparePage {...props} />}
+        {page === 'watchlist'     && <WatchlistPage {...props} />}
+        {page === 'news'          && <NewsPage {...props} />}
+        {page === 'ai'            && <AIPage {...props} />}
+        {page === 'commute'       && <CommuteFinderPage {...props} />}
+        {page === 'ownership'     && <OwnershipPage {...props} />}
+        {page === 'quiz'          && <BikeQuizPage {...props} />}
+        {page === 'resale'        && <ResalePage {...props} />}
+        {page === 'firstbike'     && <FirstBikePage {...props} />}
+        {page === 'insurance'     && <InsurancePage {...props} />}
+        {page === 'roadtax'       && <RoadTaxPage {...props} />}
+        {page === 'bikeiqplus'    && <BikeIQPlusPage {...props} />}
+        {page === 'mechanic'      && <AIMechanicPage {...props} />}
+        {page === 'health'        && <BikeHealthPage {...props} />}
+        {page === 'servicecenter' && <ServiceCenterPage {...props} />}
+        {page === 'dealer'        && <DealerLocatorPage {...props} />}
+        {page === 'accessory'     && <AccessoryAdvisorPage {...props} />}
+        {page === 'usedprice'     && <UsedPricePage {...props} />}
       </main>
-      <BottomNav
-        page={page}
-        navigate={navigate}
-        compareCount={compareList.length}
-        watchlistCount={watchlist.length}
-      />
+      <BottomNav page={page} navigate={navigate} compareCount={compareList.length} watchlistCount={watchlist.length} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppShell />
+    </AppProvider>
   );
 }
