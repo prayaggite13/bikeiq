@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, ExternalLink, Zap } from 'lucide-react';
 import { useLang } from '../utils/LanguageContext';
 import { timeAgo } from '../utils/news';
@@ -122,8 +122,7 @@ export default function NewsPage() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState('');
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const load = useCallback(async (idx) => {
+  const load = async (idx) => {
     setLoading(true);
     setError('');
     setArticles([]);
@@ -134,16 +133,15 @@ export default function NewsPage() {
       setError('');
     } catch (e) {
       console.error('News fetch failed:', e.message);
-      // Fallback: show static curated news so page is never empty
       const fallback = FALLBACK_NEWS[idx] || FALLBACK_NEWS[0];
       setArticles(fallback);
       setLastUpdated(new Date());
       setError('');
     }
     setLoading(false);
-  }, []);
+  };
 
-  useEffect(() => { load(0); }, [load]);
+  useEffect(() => { load(0); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFilter = (idx) => {
     setActiveFilter(idx);
