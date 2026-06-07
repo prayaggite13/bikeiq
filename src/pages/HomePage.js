@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, TrendingUp, ChevronRight, RefreshCw, GitCompare, Heart } from 'lucide-react';
+import { Search, Zap, TrendingUp, ChevronRight, RefreshCw, GitCompare } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
