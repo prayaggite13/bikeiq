@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, TrendingUp, ChevronRight, RefreshCw, GitCompare } from 'lucide-react';
+import { Search, Zap, TrendingUp, ChevronRight, RefreshCw, GitCompare, MapPin } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
@@ -190,6 +190,235 @@ function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted, addT
   );
 }
 
+
+// ── Indian cities for city selector ────────────────────────────────
+const INDIAN_CITIES = [
+  'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai',
+  'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Nashik',
+  'Surat', 'Lucknow', 'Chandigarh', 'Bhopal', 'Nagpur',
+];
+
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_KEY = process.env.REACT_APP_GROQ_API_KEY;
+
+async function fetchCityTrending(city) {
+  const res = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+    body: JSON.stringify({
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.4,
+      max_tokens: 800,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a bike market analyst for India. Return only valid JSON. No markdown, no explanation.',
+        },
+        {
+          role: 'user',
+          content: `What are the top 5 trending bikes and scooters in ${city}, India right now in 2025?
+Consider local road conditions, typical buyer profile, climate, commute patterns and popular models in that city.
+
+Return ONLY this JSON array:
+[
+  {
+    "name": "Full bike name",
+    "brand": "Brand",
+    "type": "Scooter/Commuter/Sport/Cruiser/Electric",
+    "price": 85000,
+    "reason": "One sentence why this is trending in ${city}",
+    "trendScore": 92,
+    "badge": "Best Seller / EV Pick / City Favourite / Value King / Weekend Ride"
+  }
+]`,
+        },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error('API error');
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content || '';
+  const start = text.indexOf('[');
+  const end = text.lastIndexOf(']');
+  if (start === -1 || end === -1) throw new Error('No JSON');
+  return JSON.parse(text.slice(start, end + 1));
+}
+
+const BADGE_COLORS = {
+  'Best Seller':      { bg: 'rgba(0,212,255,0.12)',  color: 'var(--accent)',  border: 'rgba(0,212,255,0.3)' },
+  'EV Pick':          { bg: 'rgba(0,230,118,0.12)',  color: 'var(--green)',   border: 'rgba(0,230,118,0.3)' },
+  'City Favourite':   { bg: 'rgba(255,215,64,0.12)', color: 'var(--yellow)',  border: 'rgba(255,215,64,0.3)' },
+  'Value King':       { bg: 'rgba(255,107,53,0.12)', color: 'var(--accent3)', border: 'rgba(255,107,53,0.3)' },
+  'Weekend Ride':     { bg: 'rgba(179,136,255,0.12)','color': 'var(--purple)', border: 'rgba(179,136,255,0.3)' },
+};
+
+function CityTrendingSection({ navigate }) {
+  const [city, setCity] = useState(() => localStorage.getItem('bikeiq_city') || 'Mumbai');
+  const [trending, setTrending] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [error, setError] = useState(false);
+
+  const load = async (selectedCity) => {
+    setLoading(true);
+    setError(false);
+    setTrending([]);
+    try {
+      const data = await fetchCityTrending(selectedCity);
+      setTrending(data);
+    } catch {
+      setError(true);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(city); }, [city]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectCity = (c) => {
+    setCity(c);
+    localStorage.setItem('bikeiq_city', c);
+    setShowCityPicker(false);
+  };
+
+  const formatPrice = (p) => {
+    if (!p) return '';
+    if (p >= 100000) return `₹${(p/100000).toFixed(2)}L`;
+    return `₹${(p/1000).toFixed(0)}K`;
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <TrendingUp size={16} color="var(--accent3)" />
+          Trending in
+        </div>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowCityPicker(!showCityPicker)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)',
+              borderRadius: 20, padding: '5px 12px', cursor: 'pointer',
+              color: 'var(--accent)', fontWeight: 700, fontSize: 13,
+            }}
+          >
+            <MapPin size={12} /> {city} ▾
+          </button>
+
+          {showCityPicker && (
+            <div style={{
+              position: 'absolute', top: 36, right: 0, zIndex: 300,
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 14, width: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              maxHeight: 280, overflowY: 'auto',
+            }}>
+              {INDIAN_CITIES.map(c => (
+                <div
+                  key={c}
+                  onClick={() => selectCity(c)}
+                  style={{
+                    padding: '10px 14px', cursor: 'pointer', fontSize: 13,
+                    color: c === city ? 'var(--accent)' : 'var(--text)',
+                    fontWeight: c === city ? 700 : 400,
+                    background: c === city ? 'rgba(0,212,255,0.06)' : 'transparent',
+                    borderBottom: '1px solid var(--border)',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                  onMouseLeave={e => e.currentTarget.style.background = c === city ? 'rgba(0,212,255,0.06)' : 'transparent'}
+                >
+                  {c === city ? '✓ ' : ''}{c}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Loading skeletons */}
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              height: 76, borderRadius: 14,
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              animation: `pulse 1.5s ease infinite`,
+              animationDelay: `${i * 0.15}s`,
+            }} />
+          ))}
+        </div>
+      )}
+
+      {/* Error fallback */}
+      {error && !loading && (
+        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text3)', fontSize: 13 }}>
+          Could not load city trends.{' '}
+          <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={() => load(city)}>Retry</span>
+        </div>
+      )}
+
+      {/* Trending list */}
+      {!loading && trending.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {trending.map((bike, i) => {
+            const badge = BADGE_COLORS[bike.badge] || BADGE_COLORS['City Favourite'];
+            return (
+              <div
+                key={i}
+                className="card"
+                style={{ cursor: 'pointer', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}
+                onClick={() => navigate('search', { autoSearch: true, query: bike.name })}
+              >
+                {/* Rank */}
+                <div style={{
+                  width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                  background: i === 0 ? 'var(--accent)' : 'var(--bg3)',
+                  color: i === 0 ? '#000' : 'var(--text3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 15,
+                }}>
+                  {i + 1}
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)' }}>
+                      {bike.name}
+                    </span>
+                    <span style={{
+                      fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px',
+                      borderRadius: 20, background: badge.bg,
+                      color: badge.color, border: `1px solid ${badge.border}`,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {bike.badge}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text3)', lineHeight: 1.4 }}>
+                    {bike.reason}
+                  </div>
+                </div>
+
+                {/* Price + trend score */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: '0.9rem', color: 'var(--accent)' }}>
+                    {formatPrice(bike.price)}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text3)', marginTop: 2 }}>
+                    🔥 {bike.trendScore}%
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function HomePage({ navigate, toggleWatchlist, isWatchlisted, addToCompare }) {
   const { t } = useLang();
   const [query, setQuery] = useState('');
@@ -343,6 +572,9 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted, add
 
       {/* Browse Bikes */}
       <FeaturedSection navigate={navigate} />
+
+      {/* Trending in City */}
+      <CityTrendingSection navigate={navigate} />
 
       {/* Featured This Week */}
       <div style={{ marginBottom: 20 }}>
