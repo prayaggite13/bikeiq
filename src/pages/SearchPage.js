@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, ChevronRight, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, X, ChevronRight, Clock, Mic, MicOff } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import BikeCard from '../components/BikeCard';
 
@@ -28,7 +28,6 @@ const ALL_SUGGESTIONS = [
   'Harley-Davidson X440', 'Harley-Davidson Iron 883',
 ];
 
-// Brand color dots for suggestions
 const BRAND_COLOR = {
   'Royal Enfield': '#6b6b6b', 'Honda': '#cc0000', 'TVS': '#f9a825',
   'Hero': '#1565c0', 'Bajaj': '#e65100', 'Yamaha': '#1565c0',
@@ -45,11 +44,8 @@ function getBrandColor(name) {
   return 'var(--text3)';
 }
 
-function getBrandInitial(name) {
-  return name[0].toUpperCase();
-}
+function getBrandInitial(name) { return name[0].toUpperCase(); }
 
-// Bold the matching part of a suggestion
 function HighlightMatch({ text, query }) {
   if (!query) return <span>{text}</span>;
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
@@ -94,31 +90,198 @@ function getBrandBikes(query) {
 }
 
 const MAX_RECENT = 6;
-
 function getRecent() {
   try { return JSON.parse(localStorage.getItem('bikeiq_recent') || '[]'); } catch { return []; }
 }
 function saveRecent(query) {
   const prev = getRecent().filter(q => q !== query);
-  const next = [query, ...prev].slice(0, MAX_RECENT);
-  localStorage.setItem('bikeiq_recent', JSON.stringify(next));
+  localStorage.setItem('bikeiq_recent', JSON.stringify([query, ...prev].slice(0, MAX_RECENT)));
 }
 
+// ── Voice Search states
+const VOICE_IDLE      = 'idle';
+const VOICE_LISTENING = 'listening';
+const VOICE_DONE      = 'done';
+const VOICE_ERROR     = 'error';
+const VOICE_UNSUPPORTED = 'unsupported';
+
+// ── Mic button component ───────────────────────────────────────────────────
+function MicButton({ voiceState, onStart, onStop }) {
+  const isListening = voiceState === VOICE_LISTENING;
+  const isUnsupported = voiceState === VOICE_UNSUPPORTED;
+
+  if (isUnsupported) return null; // hide entirely if browser doesn't support
+
+  return (
+    <button
+      onClick={isListening ? onStop : onStart}
+      title={isListening ? 'Stop listening' : 'Search by voice'}
+      style={{
+        flexShrink: 0,
+        width: 34, height: 34,
+        borderRadius: '50%',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.2s',
+        background: isListening
+          ? 'rgba(255,82,82,0.15)'
+          : 'var(--bg3)',
+        color: isListening ? 'var(--red)' : 'var(--text3)',
+        // Pulse ring while listening
+        boxShadow: isListening
+          ? '0 0 0 3px rgba(255,82,82,0.2), 0 0 0 6px rgba(255,82,82,0.08)'
+          : 'none',
+        animation: isListening ? 'pulse 1s ease infinite' : 'none',
+      }}
+    >
+      {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+    </button>
+  );
+}
+
+// ── Voice status pill shown below search bar ───────────────────────────────
+function VoicePill({ voiceState, transcript }) {
+  if (voiceState === VOICE_IDLE || voiceState === VOICE_UNSUPPORTED) return null;
+
+  const config = {
+    [VOICE_LISTENING]: { bg: 'rgba(255,82,82,0.1)',  border: 'rgba(255,82,82,0.3)',  color: 'var(--red)',    text: '🎤 Listening... speak now' },
+    [VOICE_DONE]:      { bg: 'rgba(0,230,118,0.1)',  border: 'rgba(0,230,118,0.3)',  color: 'var(--green)',  text: `✓ Heard: "${transcript}"` },
+    [VOICE_ERROR]:     { bg: 'rgba(255,82,82,0.1)',  border: 'rgba(255,82,82,0.3)',  color: 'var(--red)',    text: '⚠️ Could not hear. Try again.' },
+  }[voiceState] || {};
+
+  return (
+    <div style={{
+      marginTop: 8,
+      padding: '8px 14px',
+      background: config.bg,
+      border: `1px solid ${config.border}`,
+      borderRadius: 20,
+      fontSize: 12,
+      color: config.color,
+      fontWeight: 600,
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      animation: 'fadeIn 0.2s ease',
+    }}>
+      {config.text}
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
 export default function SearchPage({ navigate, selectedBike, toggleWatchlist, isWatchlisted, addToCompare }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery]             = useState('');
+  const [results, setResults]         = useState([]);
+  const [loading, setLoading]         = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
+  const [error, setError]             = useState('');
+  const [searched, setSearched]       = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [brandMode, setBrandMode] = useState(null);
-  const [activeIdx, setActiveIdx] = useState(-1); // keyboard nav
+  const [brandMode, setBrandMode]     = useState(null);
+  const [activeIdx, setActiveIdx]     = useState(-1);
   const [recentSearches, setRecentSearches] = useState(getRecent());
-  const inputRef = useRef(null);
+
+  // ── Voice state ──────────────────────────────────────────────────────────
+  const [voiceState, setVoiceState]   = useState(VOICE_IDLE);
+  const [transcript, setTranscript]   = useState('');
+  const recognitionRef                = useRef(null);
+
+  const inputRef    = useRef(null);
   const dropdownRef = useRef(null);
 
+  // ── Check browser support + initialise SpeechRecognition ────────────────
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setVoiceState(VOICE_UNSUPPORTED);
+      return;
+    }
+
+    const recognition = new SR();
+    recognition.lang          = 'en-IN'; // Indian English accent
+    recognition.interimResults = true;   // show partial results live
+    recognition.maxAlternatives = 3;
+    recognition.continuous    = false;
+
+    recognition.onstart = () => setVoiceState(VOICE_LISTENING);
+
+    recognition.onresult = (e) => {
+      // Collect best transcript across all results
+      let final = '';
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      const heard = (final || interim).trim();
+      setTranscript(heard);
+      setQuery(heard); // update search bar live as user speaks
+    };
+
+    recognition.onend = () => {
+      // Only auto-search if we got something
+      setVoiceState(prev => {
+        if (prev === VOICE_LISTENING) return VOICE_DONE;
+        return prev;
+      });
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error === 'no-speech' || e.error === 'audio-capture') {
+        setVoiceState(VOICE_ERROR);
+      } else if (e.error !== 'aborted') {
+        setVoiceState(VOICE_ERROR);
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      try { recognition.abort(); } catch {}
+    };
+  }, []);
+
+  // ── When voice finishes and we have a transcript → auto search ───────────
+  useEffect(() => {
+    if (voiceState === VOICE_DONE && transcript.trim()) {
+      // Small delay so user sees what was heard before search fires
+      const timer = setTimeout(() => {
+        triggerSearch(transcript.trim());
+        // Reset pill after 2s
+        setTimeout(() => setVoiceState(VOICE_IDLE), 2000);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceState, transcript]);
+
+  const startVoice = useCallback(() => {
+    if (!recognitionRef.current) return;
+    setTranscript('');
+    setQuery('');
+    setResults([]);
+    setSearched(false);
+    setError('');
+    try {
+      recognitionRef.current.start();
+    } catch {
+      // Already started — stop and restart
+      recognitionRef.current.stop();
+      setTimeout(() => recognitionRef.current.start(), 200);
+    }
+  }, []);
+
+  const stopVoice = useCallback(() => {
+    if (!recognitionRef.current) return;
+    try { recognitionRef.current.stop(); } catch {}
+    setVoiceState(VOICE_IDLE);
+  }, []);
+
+  // ── Auto-search from navigation ──────────────────────────────────────────
   useEffect(() => {
     if (selectedBike?.autoSearch && selectedBike?.query) {
       const q = selectedBike.query;
@@ -181,32 +344,24 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
     }
   };
 
-  const handleSearch = () => {
-    if (!query.trim()) return;
-    triggerSearch(query);
-  };
+  const handleSearch = () => { if (query.trim()) triggerSearch(query); };
 
   const handleInputChange = (val) => {
     setQuery(val);
     setActiveIdx(-1);
     if (val.length >= 1) {
-      const filtered = ALL_SUGGESTIONS.filter(s =>
-        s.toLowerCase().includes(val.toLowerCase())
-      ).slice(0, 8);
+      const filtered = ALL_SUGGESTIONS.filter(s => s.toLowerCase().includes(val.toLowerCase())).slice(0, 8);
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
     } else {
       setSuggestions([]);
-      setShowSuggestions(recentSearches.length > 0); // show recent when empty
+      setShowSuggestions(recentSearches.length > 0);
     }
   };
 
   const handleFocus = () => {
-    if (query.length >= 1 && suggestions.length > 0) {
-      setShowSuggestions(true);
-    } else if (query.length === 0 && recentSearches.length > 0) {
-      setShowSuggestions(true);
-    }
+    if (query.length >= 1 && suggestions.length > 0) setShowSuggestions(true);
+    else if (query.length === 0 && recentSearches.length > 0) setShowSuggestions(true);
   };
 
   const handleSuggestionClick = (s) => {
@@ -221,26 +376,12 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
     setShowSuggestions(false);
   };
 
-  // Keyboard navigation
   const handleKeyDown = (e) => {
     const items = query.length === 0 ? recentSearches : suggestions;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIdx(i => Math.min(i + 1, items.length - 1));
-      setShowSuggestions(true);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIdx(i => Math.max(i - 1, -1));
-    } else if (e.key === 'Enter') {
-      if (activeIdx >= 0 && items[activeIdx]) {
-        handleSuggestionClick(items[activeIdx]);
-      } else {
-        handleSearch();
-      }
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setActiveIdx(-1);
-    }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, items.length - 1)); setShowSuggestions(true); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, -1)); }
+    else if (e.key === 'Enter') { activeIdx >= 0 && items[activeIdx] ? handleSuggestionClick(items[activeIdx]) : handleSearch(); }
+    else if (e.key === 'Escape') { setShowSuggestions(false); setActiveIdx(-1); }
   };
 
   const displayItems = query.length === 0 ? recentSearches : suggestions;
@@ -248,18 +389,20 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
 
   return (
     <div className="page">
-      {/* Search bar */}
-      <div style={{ position: 'relative', marginBottom: 16 }}>
-        <div className="search-bar" style={{ borderColor: showSuggestions ? 'var(--accent)' : undefined }}>
+
+      {/* ── Search bar ── */}
+      <div style={{ position: 'relative', marginBottom: 4 }}>
+        <div className="search-bar" style={{ borderColor: voiceState === VOICE_LISTENING ? 'var(--red)' : showSuggestions ? 'var(--accent)' : undefined, gap: 8 }}>
           <Search size={18} color="var(--text3)" />
           <input
             ref={inputRef}
-            placeholder="Search bike, brand, or model..."
+            placeholder={voiceState === VOICE_LISTENING ? 'Listening...' : 'Search bike, brand, or model...'}
             value={query}
             onChange={e => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             autoFocus
+            style={{ fontStyle: voiceState === VOICE_LISTENING ? 'italic' : 'normal' }}
           />
           {query && (
             <button className="icon-btn" style={{ width: 28, height: 28 }}
@@ -272,10 +415,21 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
               <X size={14} />
             </button>
           )}
+
+          {/* Mic button — sits between clear and Go */}
+          <MicButton
+            voiceState={voiceState}
+            onStart={startVoice}
+            onStop={stopVoice}
+          />
+
           <button className="btn btn-primary btn-sm" onClick={handleSearch} style={{ flexShrink: 0 }}>Go</button>
         </div>
 
-        {/* Suggestions / Recent dropdown */}
+        {/* Voice status pill */}
+        <VoicePill voiceState={voiceState} transcript={transcript} />
+
+        {/* Suggestions dropdown */}
         {showSuggestions && displayItems.length > 0 && (
           <div ref={dropdownRef} style={{
             position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
@@ -283,25 +437,14 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
             borderRadius: 14, marginTop: 6, overflow: 'hidden',
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
-            {/* Header row for recent */}
             {isRecent && (
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 14px 4px',
-              }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                  Recent Searches
-                </span>
-                <span onClick={clearRecent} style={{ fontSize: 11, color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>
-                  Clear
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px 4px' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Recent Searches</span>
+                <span onClick={clearRecent} style={{ fontSize: 11, color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
               </div>
             )}
-
             {displayItems.map((s, i) => (
-              <div
-                key={i}
-                onClick={() => handleSuggestionClick(s)}
+              <div key={i} onClick={() => handleSuggestionClick(s)}
                 style={{
                   padding: '10px 14px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -312,25 +455,16 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
                 onMouseEnter={() => setActiveIdx(i)}
                 onMouseLeave={() => setActiveIdx(-1)}
               >
-                {/* Brand dot or clock icon */}
                 {isRecent ? (
                   <Clock size={13} color="var(--text3)" style={{ flexShrink: 0 }} />
                 ) : (
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-                    background: getBrandColor(s),
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 800, color: '#fff',
-                  }}>
+                  <div style={{ width: 24, height: 24, borderRadius: 6, flexShrink: 0, background: getBrandColor(s), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#fff' }}>
                     {getBrandInitial(s)}
                   </div>
                 )}
-
-                {/* Text with bold match */}
                 <span style={{ flex: 1, fontSize: '0.88rem', color: 'var(--text)' }}>
                   {isRecent ? s : <HighlightMatch text={s} query={query} />}
                 </span>
-
                 <ChevronRight size={13} color="var(--text3)" />
               </div>
             ))}
@@ -338,7 +472,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
         )}
       </div>
 
-      {/* Brand mode header */}
+      {/* ── Brand mode header ── */}
       {brandMode && (
         <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'capitalize' }}>
@@ -348,7 +482,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
         </div>
       )}
 
-      {/* Loading */}
+      {/* ── Loading ── */}
       {loading && (
         <div className="loading">
           <div className="spinner" />
@@ -358,7 +492,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
         </div>
       )}
 
-      {/* Error */}
+      {/* ── Error ── */}
       {error && !loading && (
         <div className="empty">
           <div className="empty-icon">😕</div>
@@ -367,7 +501,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
         </div>
       )}
 
-      {/* Results */}
+      {/* ── Results ── */}
       {results.length > 0 && !loading && (
         <div className="fade-in">
           <div className="section-title" style={{ fontSize: '1rem', marginBottom: 12 }}>
@@ -376,14 +510,8 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {results.map((bike, i) => (
-              <BikeCard
-                key={i}
-                bike={bike}
-                navigate={navigate}
-                toggleWatchlist={toggleWatchlist}
-                isWatchlisted={isWatchlisted}
-                addToCompare={addToCompare}
-              />
+              <BikeCard key={i} bike={bike} navigate={navigate}
+                toggleWatchlist={toggleWatchlist} isWatchlisted={isWatchlisted} addToCompare={addToCompare} />
             ))}
           </div>
           {loadingMore && (
@@ -395,7 +523,7 @@ export default function SearchPage({ navigate, selectedBike, toggleWatchlist, is
         </div>
       )}
 
-      {/* Empty state — popular bikes */}
+      {/* ── Empty state ── */}
       {!searched && !loading && (
         <div>
           <div className="section-title" style={{ fontSize: '1rem', marginBottom: 10 }}>Popular Bikes</div>
