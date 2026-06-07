@@ -31,7 +31,6 @@ import './App.css';
 
 export default function App() {
   const [page, setPage]               = useState('home');
-  const [fromPage, setFromPage]         = useState('home');
   const [selectedBike, setSelectedBike] = useState(null);
   const [compareList, setCompareList] = useState([]);
   const [watchlist, setWatchlist]     = useState([]);
@@ -66,7 +65,6 @@ export default function App() {
   }, [currentUser]);
 
   const navigate = (p, data = null) => {
-    if (p === 'bike') setFromPage(page);
     setPage(p);
     if (data) setSelectedBike(data);
     window.scrollTo(0, 0);
@@ -119,7 +117,7 @@ export default function App() {
 
   const props = {
     navigate, selectedBike, compareList, addToCompare, removeFromCompare,
-    watchlist, toggleWatchlist, isWatchlisted, darkMode, setDarkMode, fromPage,
+    watchlist, toggleWatchlist, isWatchlisted, darkMode, setDarkMode,
   };
 
   return (
