@@ -14,6 +14,33 @@ export default function BikeDetailPage({ selectedBike: bike, navigate, toggleWat
   const [aiLoading, setAiLoading] = useState(false);
   const [dailyKm, setDailyKm] = useState(30);
 
+
+  // Dynamic meta tags — must be before any early return (Rules of Hooks)
+  useEffect(() => {
+    if (!bike) return;
+    const prevTitle = document.title;
+    const price = bike.basePrice ? `₹${(bike.basePrice/100000).toFixed(2)}L` : '';
+    const mileage = bike.mileage?.claimed ? ` | ${bike.mileage.claimed} mileage` : '';
+    const range = bike.evSpecs?.range?.claimed ? ` | ${bike.evSpecs.range.claimed} range` : '';
+
+    document.title = `${bike.name} Price${price ? ` ${price}` : ''}, Specs & Review — BikeIQ`;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
+    const prevDesc = metaDesc.content;
+    metaDesc.content = `${bike.name} by ${bike.brand}. Ex-showroom price ${price}${mileage}${range}. Full specs, variants, city prices, owner reviews and AI expert analysis on BikeIQ.`;
+
+    const setOG = (prop, val) => {
+      let el = document.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+      el.content = val;
+    };
+    setOG('og:title', `${bike.name} — Price, Specs & Review`);
+    setOG('og:description', metaDesc.content);
+
+    return () => { document.title = prevTitle; metaDesc.content = prevDesc; };
+  }, [bike]);
+
   if (!bike) return <div className="page"><div className="empty"><div className="empty-icon">🏍️</div><h3>No bike selected</h3></div></div>;
 
   // Dynamic meta tags for SEO
