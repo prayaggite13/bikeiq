@@ -24,6 +24,7 @@ import AccessoryAdvisorPage from './pages/AccessoryAdvisorPage';
 import UsedPricePage from './pages/UsedPricePage';
 import EMICalculatorPage from './pages/EMICalculatorPage';
 import { LanguageProvider } from './utils/LanguageContext';
+import { setMeta, resetMeta } from './utils/meta';
 import './App.css';
 
 export default function App() {
@@ -41,6 +42,27 @@ export default function App() {
     setPage(p);
     if (data) setSelectedBike(data);
     window.scrollTo(0, 0);
+
+    // Update meta tags per page
+    const pageMeta = {
+      home:        ["India's Smartest Bike Platform", "Search, compare and get AI insights on every bike and scooter in India. Real specs, city-wise on-road prices, EV analysis."],
+      search:      ["Search Bikes & Scooters", "Find any bike or scooter sold in India. Specs, price, mileage, variants — powered by AI."],
+      compare:     ["Compare Bikes Side by Side", "Compare up to 3 bikes with specs, price and AI verdict. Find the best bike for you."],
+      news:        ["Latest Bike News India", "Live 2-wheeler news — new launches, price updates, reviews and EV updates from India."],
+      ai:          ["AI Bike Assistant", "Ask anything about bikes. BikeIQ AI answers your questions about specs, buying advice and more."],
+      bikeiqplus:  ["BikeIQ+ Premium Tools", "AI Mechanic, EMI Calculator, Road Tax, Insurance, Commute Finder and more premium tools."],
+      roadtax:     ["Road Tax Calculator India", "State-wise RTO and road tax calculator for bikes and scooters across all Indian states."],
+      emi:         ["Bike EMI Calculator", "Calculate monthly EMI for any bike. Compare lenders, tenures and interest rates instantly."],
+      insurance:   ["Bike Insurance Estimator", "Estimate your bike insurance premium based on city, bike model and NCB."],
+      commute:     ["Commute Finder", "AI picks the best bike for your daily commute based on distance, road type and budget."],
+      mechanic:    ["AI Mechanic", "Describe your bike issue — AI diagnoses the problem and suggests fixes."],
+      usedprice:   ["Used Bike Price Checker", "Get fair market value for any used bike in India based on age, km and condition."],
+    };
+    if (p !== 'bike' && pageMeta[p]) {
+      setMeta(pageMeta[p][0], pageMeta[p][1]);
+    } else if (p !== 'bike') {
+      resetMeta();
+    }
   };
 
   const addToCompare = (bike) => {

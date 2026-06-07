@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, TrendingUp, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Zap, TrendingUp, ChevronRight, RefreshCw, GitCompare, Heart } from 'lucide-react';
 import { searchBikeInfo } from '../utils/gemini';
 import FeaturedSection from '../components/FeaturedSection';
 import { formatINR } from '../utils/calculator';
@@ -131,7 +131,7 @@ function BikeImage({ name, type, brand }) {
   );
 }
 
-function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
+function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted, addToCompare }) {
   const saved = isWatchlisted(bike);
   return (
     <div
@@ -143,12 +143,22 @@ function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
         <span className={`tag ${bike.fuelType === 'Electric' ? 'tag-ev' : 'tag-petrol'}`} style={{ fontSize: '0.65rem' }}>
           {bike.fuelType === 'Electric' ? '⚡ EV' : '⛽ Petrol'}
         </span>
-        <button
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: saved ? 'var(--accent3)' : 'var(--text3)', fontSize: '1rem', padding: 0 }}
-          onClick={e => { e.stopPropagation(); toggleWatchlist(bike); }}
-        >
-          {saved ? '♥' : '♡'}
-        </button>
+        <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+          <button
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: saved ? 'var(--accent3)' : 'var(--text3)', fontSize: '1rem', padding: 2 }}
+            onClick={() => toggleWatchlist(bike)}
+            title="Save"
+          >
+            {saved ? '♥' : '♡'}
+          </button>
+          <button
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 2, display: 'flex', alignItems: 'center' }}
+            onClick={() => addToCompare(bike)}
+            title="Add to Compare"
+          >
+            <GitCompare size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Styled bike visual */}
@@ -180,7 +190,7 @@ function FeaturedBikeCard({ bike, navigate, toggleWatchlist, isWatchlisted }) {
   );
 }
 
-export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
+export default function HomePage({ navigate, toggleWatchlist, isWatchlisted, addToCompare }) {
   const { t } = useLang();
   const [query, setQuery] = useState('');
   const CATEGORIES = [
@@ -360,7 +370,7 @@ export default function HomePage({ navigate, toggleWatchlist, isWatchlisted }) {
         {featuredBikes.length > 0 && (
           <div className="scroll-row">
             {featuredBikes.map((bike, i) => (
-              <FeaturedBikeCard key={i} bike={bike} navigate={navigate} toggleWatchlist={toggleWatchlist} isWatchlisted={isWatchlisted} />
+              <FeaturedBikeCard key={i} bike={bike} navigate={navigate} toggleWatchlist={toggleWatchlist} isWatchlisted={isWatchlisted} addToCompare={addToCompare} />
             ))}
             {loadingFeatured && (
               <div style={{ flexShrink: 0, width: 200, height: 180, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
