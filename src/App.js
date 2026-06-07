@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import HomePage from './pages/HomePage';
@@ -25,38 +25,63 @@ import UsedPricePage from './pages/UsedPricePage';
 import EMICalculatorPage from './pages/EMICalculatorPage';
 import { LanguageProvider } from './utils/LanguageContext';
 import { setMeta, resetMeta } from './utils/meta';
+import { supabase } from './utils/supabase';
+import { getWatchlist, saveToWatchlist, removeFromWatchlist } from './utils/supabase';
 import './App.css';
 
 export default function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPage]               = useState('home');
   const [selectedBike, setSelectedBike] = useState(null);
   const [compareList, setCompareList] = useState([]);
-  const [watchlist, setWatchlist] = useState([]);
-  const [darkMode, setDarkMode] = useState(true);
+  const [watchlist, setWatchlist]     = useState([]);
+  const [darkMode, setDarkMode]       = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  // ── Listen to Supabase auth changes ────────────────────────────────────────
+  useEffect(() => {
+    // Get current session on mount
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) setCurrentUser(data.session.user);
+    });
+
+    // Subscribe to login / logout events
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
+    });
+    return () => listener?.subscription?.unsubscribe();
+  }, []);
+
+  // ── Load watchlist from Supabase when user logs in, clear on logout ────────
+  useEffect(() => {
+    if (currentUser) {
+      getWatchlist().then(bikes => { if (bikes.length > 0) setWatchlist(bikes); });
+    } else {
+      setWatchlist([]);
+    }
+  }, [currentUser]);
 
   const navigate = (p, data = null) => {
     setPage(p);
     if (data) setSelectedBike(data);
     window.scrollTo(0, 0);
 
-    // Update meta tags per page
     const pageMeta = {
-      home:        ["India's Smartest Bike Platform", "Search, compare and get AI insights on every bike and scooter in India. Real specs, city-wise on-road prices, EV analysis."],
-      search:      ["Search Bikes & Scooters", "Find any bike or scooter sold in India. Specs, price, mileage, variants — powered by AI."],
-      compare:     ["Compare Bikes Side by Side", "Compare up to 3 bikes with specs, price and AI verdict. Find the best bike for you."],
-      news:        ["Latest Bike News India", "Live 2-wheeler news — new launches, price updates, reviews and EV updates from India."],
-      ai:          ["AI Bike Assistant", "Ask anything about bikes. BikeIQ AI answers your questions about specs, buying advice and more."],
-      bikeiqplus:  ["BikeIQ+ Premium Tools", "AI Mechanic, EMI Calculator, Road Tax, Insurance, Commute Finder and more premium tools."],
-      roadtax:     ["Road Tax Calculator India", "State-wise RTO and road tax calculator for bikes and scooters across all Indian states."],
-      emi:         ["Bike EMI Calculator", "Calculate monthly EMI for any bike. Compare lenders, tenures and interest rates instantly."],
-      insurance:   ["Bike Insurance Estimator", "Estimate your bike insurance premium based on city, bike model and NCB."],
-      commute:     ["Commute Finder", "AI picks the best bike for your daily commute based on distance, road type and budget."],
-      mechanic:    ["AI Mechanic", "Describe your bike issue — AI diagnoses the problem and suggests fixes."],
-      usedprice:   ["Used Bike Price Checker", "Get fair market value for any used bike in India based on age, km and condition."],
+      home:       ["India's Smartest Bike Platform", "Search, compare and get AI insights on every bike and scooter in India."],
+      search:     ["Search Bikes & Scooters", "Find any bike or scooter sold in India. Specs, price, mileage, variants — powered by AI."],
+      compare:    ["Compare Bikes Side by Side", "Compare up to 3 bikes with specs, price and AI verdict."],
+      news:       ["Latest Bike News India", "Live 2-wheeler news — new launches, price updates, reviews and EV updates from India."],
+      ai:         ["AI Bike Assistant", "Ask anything about bikes. BikeIQ AI answers your questions about specs, buying advice and more."],
+      bikeiqplus: ["BikeIQ+ Premium Tools", "AI Mechanic, EMI Calculator, Road Tax, Insurance, Commute Finder and more."],
+      roadtax:    ["Road Tax Calculator India", "State-wise RTO and road tax calculator for bikes and scooters across all Indian states."],
+      emi:        ["Bike EMI Calculator", "Calculate monthly EMI for any bike. Compare lenders, tenures and interest rates instantly."],
+      insurance:  ["Bike Insurance Estimator", "Estimate your bike insurance premium based on city, bike model and NCB."],
+      commute:    ["Commute Finder", "AI picks the best bike for your daily commute based on distance, road type and budget."],
+      mechanic:   ["AI Mechanic", "Describe your bike issue — AI diagnoses the problem and suggests fixes."],
+      usedprice:  ["Used Bike Price Checker", "Get fair market value for any used bike in India based on age, km and condition."],
     };
     if (p !== 'bike' && pageMeta[p]) {
       setMeta(pageMeta[p][0], pageMeta[p][1]);
@@ -73,15 +98,22 @@ export default function App() {
 
   const removeFromCompare = (name) => setCompareList(prev => prev.filter(b => b.name !== name));
 
-  const toggleWatchlist = (bike) => {
-    setWatchlist(prev =>
-      prev.find(b => b.name === bike.name)
-        ? prev.filter(b => b.name !== bike.name)
-        : [...prev, bike]
-    );
-  };
+  // ── Watchlist — optimistic local update + Supabase sync if logged in ───────
+  const toggleWatchlist = useCallback(async (bike) => {
+    const alreadySaved = watchlist.some(b => b.name === bike.name);
+    if (alreadySaved) {
+      setWatchlist(prev => prev.filter(b => b.name !== bike.name));
+      if (currentUser) await removeFromWatchlist(bike.name);
+    } else {
+      setWatchlist(prev => [...prev, bike]);
+      if (currentUser) await saveToWatchlist(bike);
+    }
+  }, [watchlist, currentUser]);
 
-  const isWatchlisted = (bike) => watchlist.some(b => b.name === bike?.name);
+  const isWatchlisted = useCallback(
+    (bike) => watchlist.some(b => b.name === bike?.name),
+    [watchlist]
+  );
 
   const props = {
     navigate, selectedBike, compareList, addToCompare, removeFromCompare,
