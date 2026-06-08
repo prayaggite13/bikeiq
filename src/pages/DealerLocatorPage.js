@@ -22,7 +22,6 @@ async function geocodeCity(city) {
 // ── Search dealers via Overpass API (real OSM data, free) ─────────
 async function searchDealersOverpass(lat, lng, brand) {
   const radius = 15000; // 15km
-  const brandKeywords = brand ? [brand.toLowerCase()] : ['bike', 'motorcycle', 'two wheeler', 'scooter'];
   
   // Build Overpass query for motorcycle dealers/shops
   const query = `
